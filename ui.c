@@ -34,10 +34,10 @@ void ui_refresh(ui_t *ui, int flag) {
 	move(ui->posx - ui->scrx, ui->posy - ui->scry);
 }
 void ui_keydown(ui_t *ui) {
-	int newposx, newposy;
-	editor_gooffset(ui->editor, ui->posx+1, ui->realposy, &newposx, &newposy);
-	if (newposx == ui->posx) return;
-	ui->posx = newposx, ui->posy = newposy;
+	int newdx, newy;
+	editor_go_x(ui->editor, 1, ui->realposy, &newdx, &newy);
+	if (newdx == 0) return;
+	ui->posx += newdx, ui->posy = newy;
 	int refresh = 0;
 	if (ui->posx >= ui->scrx + ui->h) {
 		ui->scrx++;
@@ -53,10 +53,10 @@ void ui_keydown(ui_t *ui) {
 	ui_refresh(ui, refresh);
 }
 void ui_keyup(ui_t *ui) {
-	int newposx, newposy;
-	editor_gooffset(ui->editor, ui->posx-1, ui->realposy, &newposx, &newposy);
-	if (newposx == ui->posx) return;
-	ui->posx = newposx, ui->posy = newposy;
+	int newdx, newy;
+	editor_go_x(ui->editor, -1, ui->realposy, &newdx, &newy);
+	if (newdx == 0) return;
+	ui->posx += newdx, ui->posy = newy;
 	int refresh = 0;
 	if (ui->posx < ui->scrx) {
 		ui->scrx--;
@@ -72,10 +72,11 @@ void ui_keyup(ui_t *ui) {
 	ui_refresh(ui, refresh);
 }
 void ui_keyleft(ui_t *ui) {
-	int newposx, newposy;
-	editor_gooffset(ui->editor, ui->posx, ui->posy-1, &newposx, &newposy);
-	if (newposy == ui->posy) return;
-	ui->realposy = ui->posy = newposy;
+	int newdy;
+	editor_go_y(ui->editor, ui->posy, -1, &newdy);
+	ui->posy += newdy;
+	ui->realposy = ui->posy;
+	if (newdy == 0) return;
 	int refresh = 0;
 	if (ui->posy < ui->scry) {
 		ui->scry -= ui->w/2;
@@ -84,14 +85,11 @@ void ui_keyleft(ui_t *ui) {
 	ui_refresh(ui, refresh);
 }
 void ui_keyright(ui_t *ui) {
-	if (ui->realposy > ui->posy) {
-		ui->realposy = ui->posy;
-		return;
-	}
-	int newposx, newposy;
-	editor_gooffset(ui->editor, ui->posx, ui->posy+1, &newposx, &newposy);
-	if (newposy == ui->posy) return;
-	ui->realposy = ui->posy = newposy;
+	int newdy;
+	editor_go_y(ui->editor, ui->posy, 1, &newdy);
+	ui->posy += newdy;
+	ui->realposy = ui->posy;
+	if (newdy == 0) return;
 	int refresh = 0;
 	if (ui->posy >= ui->scry + ui->w) {
 		ui->scry += ui->w/2;
