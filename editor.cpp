@@ -1,5 +1,7 @@
-#include <cstdlib>
+#include <cstdio>
+
 #include "editor.h"
+/*
 void editor_t::initialize(const char *file) {
 	FILE *fp = fopen(file, "r");
 	row = 0;
@@ -108,3 +110,66 @@ void editor_t::go_x(int dx, int y, int &resdx, int &resy) {
 		go_y(0, y, resy);
 	}
 }
+*/
+
+void editor_t::initialize(const char *file) {
+	FILE *fp = fopen(file, "r");
+	int c;
+	Xpos = Ypos = nRow = nCol = nChar = 0;
+	editor_list<char> tmp;
+	while ((c = fgetc(fp)) != EOF) {
+		if (c != '\n') {
+			tmp.insert(tmp.end(), c);
+		} else {
+			a.insert(a.end(), tmp);
+			tmp.clear();
+			nRow++;
+		}
+		nChar++;
+	}
+}
+
+void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& ret) {
+	_line_t::iterator line_it = a.getPos(x);
+	ret.clear();
+	for (int i = 0; i < h && line_it != a.end(); i++) {
+		std::string st;
+		_char_t::iterator char_it = line_it->value.getPos(y);
+		for (int j = 0; j < w && char_it != line_it->value.end();) {
+			if (char_it->value != '\t') {
+				st += char_it->value;
+				j++;
+			} else {
+				for (int k = 0; k < TAB_WIDTH && k < w - j; k++) st += ' ';
+				j += TAB_WIDTH;
+			}
+			char_it = line_it->value.Next(char_it);
+		}
+		line_it = a.Next(line_it);
+		ret.push_back(st);
+	}
+}
+
+void editor_t::go_y(int y, int dy, int &resdy) {
+	int dir = 1;
+	if (dy < 0) dy = -dy, dir = 0;
+	resdy = 0;
+	_char_t now = a.getPos(Xpos)->value;
+	_char_t::iterator it = now.getPos(y);
+	for (int i = 0; i < dy && it != now.end(); i++, it = it->ch[dir]) {
+		if (it->value == '\t') {
+			resdy = (resdy + TAB_WIDTH) / TAB_WIDTH * TAB_WIDTH;
+		} else resdy++;
+	}
+	Ypos = y + dy;
+}
+
+void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
+	int tmp = Xpos; Xpos += dx;
+	if (Xpos < 0) Xpos = 0;
+	if (Xpos >= nRow) Xpos = nRow - 1;
+	resdx = Xpos - tmp; if (resdx < 0) resdx = -resdx;
+	Ypos = 0;
+	go_y(0, y, resdy);
+}
+

@@ -110,12 +110,27 @@ class editor_list {
 	 * Return the beginning of the first mathched. If there is no matched, just return null.
 	 */
 	iterator match(const std::string& pattern, const iterator& begin);
+
+	/*
+	 * clear the list
+	 */
+	void clear(void);
+
+	/*
+	 * Get the next iterator
+	 */
+	iterator Next(const iterator&);
+
+	/*
+	 * Get the previous iterator
+	 */
+	iterator Prev(const iterator&);
 };
 
 template<class T>
 typename editor_list<T>::iterator editor_list<T>::getPos(const int& index) const {
 	iterator ret = head;
-	for (int i = 0; i < index; i++) ret = ret->ch[1];
+	for (int i = 0; i < index && ret != null; i++) ret = ret->ch[1];
 	return ret;
 }
 
@@ -138,7 +153,7 @@ unsigned int editor_list<T>::getWhere(const iterator& now) const {
 template<class T>
 typename editor_list<T>::iterator editor_list<T>::getPosAt(const typename editor_list<T>::iterator& begin, const int &bias) const {
 	iterator ret = begin;
-	for (int i = 0; i < bias; i++) ret = ret->ch[1];
+	for (int i = 0; i < bias && ret != null; i++) ret = ret->ch[1];
 	return ret;
 }
 
@@ -196,4 +211,25 @@ typename editor_list<T>::iterator editor_list<T>::match(const std::string& patte
 	}
 	return null;
 }
+
+template<class T>
+void editor_list<T>::clear(void) {
+	iterator it = head, tmp;
+	for (; it != null; it = it->ch[1]) {
+		tmp = it->ch[1];
+		delete it;
+		it = tmp;
+	}
+}
+
+template<class T>
+typename editor_list<T>::iterator Next(const typename editor_list<T>::iterator& now) {
+	return now->ch[1];
+}
+
+template<class T>
+typename editor_list<T>::iterator Prev(const typename editor_list<T>::iterator& now) {
+	return now->ch[0];
+}
+
 #endif

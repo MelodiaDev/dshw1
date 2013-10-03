@@ -1,7 +1,6 @@
 initialize(char *file)
 
 retrieve(int x,int y,int h,int w,vector<string> &res)
-
 go_y(int y,int dy,int &resdy)
 	//从第y列开始行内右移dy列（负数表示左移），实际移动的列数，存放在resdy
 go_x(int dx,int y,int &resdx,int &resy)
