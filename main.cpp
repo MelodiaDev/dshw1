@@ -3,16 +3,14 @@
 #include "ui.h"
 int w, h;
 ui_t *ui;
-/*
 void handle_winch(int sig) {
 	endwin();
 	refresh();
 	clear();
 	getmaxyx(stdscr, h, w);
-	mvprintw(h-1, 0, "window:%d %d", h, w);
+	ui->resize(h, w);
 	refresh();
 }
-*/
 int main(int argc, char **argv) {
 	initscr();
 	raw();
@@ -21,9 +19,11 @@ int main(int argc, char **argv) {
 	keypad(stdscr, TRUE);
 	set_escdelay(25);
 	getmaxyx(stdscr, h, w);
-	ui_initialize(&ui, argv[1]);
+	signal(SIGWINCH, handle_winch);
+	ui = new ui_t;
+	ui->initialize(argv[1]);
 	ui->w = w, ui->h = h;
-	ui_refresh(ui);
+	ui->refresh(1);
 	while (1) {
 		int ch = getch();
 		int endflag = 0;
@@ -32,16 +32,16 @@ int main(int argc, char **argv) {
 				endflag = 1;
 				break;
 			case 'j':
-				ui_keydown(ui);
+				ui->keydown();
 				break;
 			case 'k':
-				ui_keyup(ui);
+				ui->keyup();
 				break;
 			case 'h':
-				ui_keyleft(ui);
+				ui->keyleft();
 				break;
 			case 'l':
-				ui_keyright(ui);
+				ui->keyright();
 				break;
 			default:
 				break;
