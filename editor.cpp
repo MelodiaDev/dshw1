@@ -7,6 +7,7 @@ void editor_t::initialize(const char *file) {
 	FILE *fp = fopen(file, "r");
 	int c;
 	Xpos = Ypos = nRow = nCol = nChar = 0;
+	if (fp == NULL) return;
 	_char_t* tmp = new _char_t;
 	while ((c = fgetc(fp)) != EOF) {
 		if (c != '\n') {
@@ -25,15 +26,22 @@ void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& re
 	ret.clear();
 	for (int i = 0; i < h && line_it != a.end(); i++) {
 		std::string st;
-		_char_t::iterator char_it = line_it->value.getPos(y);
-		for (int j = 0; j < w && char_it != line_it->value.end();) {
-			if (char_it->value != '\t') {
-				st += char_it->value;
-				j++;
-			} else {
-				for (int k = 0; k < TAB_WIDTH && k < w - j; k++) st += ' ';
-				j += TAB_WIDTH;
-			}
+		_char_t::iterator char_it = line_it->value.begin();
+		int nowy = 0, newy, flag = 0;
+		for (; char_it != line_it->value.end();) {
+			if (char_it->value == '\t')
+				newy = nowy + 4;
+			else
+				newy = nowy + 1;
+			for (int k = (nowy < y ? y : nowy); k < newy && k < y+w; k++)
+				if (char_it->value == '\t')
+					st += ' ';
+				else if (char_it->value > 31 && char_it->value < 127)
+					st += char_it->value;
+				else
+					st += '.';
+			nowy = newy;
+			if (nowy >= y+w) break;
 			char_it = line_it->value.Next(char_it);
 		}
 		line_it = a.Next(line_it);

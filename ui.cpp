@@ -13,22 +13,28 @@ void ui_t::initialize(const char *_file) {
 	file = new char[strlen(_file)+1];
 	strcpy(file, _file);
 }
-void ui_t::refresh(int flag) {
+void ui_t::refreshscr(int flag) {
 	if (flag) {
 		vector<string> data;
 		editor->retrieve(scrx, scry, h, w, data);
 		for (int i = 0; i < h; i++) {
 			move(i, 0);
 			clrtoeol();
-			for (int j = 0; j < w; j++)
-				if (data[i][j] != 0 && data[i][j] != '\n')
-					addch(data[i][j] == '\t' ? ' ' : data[i][j]);
-				else
-					break;
+			if (i >= data.size()) continue;
+			for (int j = 0; j < w && j < data[i].size(); j++)
+				addch(data[i][j]);
 		}
 	}
+	move(h, 0);
+	clrtoeol();
+	move(h, 10);
+	printw("%s", file[0] ? file : "[NEW]");
+	refresh();
+	move(h, w-20);
+	printw(" %d,%d", posx, posy);
+	refresh();
 	move(posx - scrx, posy - scry);
-	//refresh();
+	refresh();
 }
 void ui_t::keydown(void) {
 	int newdx, newy;
@@ -48,7 +54,7 @@ void ui_t::keydown(void) {
 		scry += ((posy - scry - w) / (w/2) + 1) * (w/2);
 		refresh_flag = 1;
 	}
-	refresh(refresh_flag);
+	refreshscr(refresh_flag);
 }
 void ui_t::keyup(void) {
 	int newdx, newy;
@@ -68,7 +74,7 @@ void ui_t::keyup(void) {
 		scry += ((posy - scry - w) / (w/2) + 1) * (w/2);
 		refresh_flag = 1;
 	}
-	refresh(refresh_flag);
+	refreshscr(refresh_flag);
 }
 void ui_t::keyleft(void) {
 	int newdy;
@@ -82,7 +88,7 @@ void ui_t::keyleft(void) {
 		if (scry < 0) scry = 0;
 		refresh_flag = 1;
 	}
-	refresh(refresh_flag);
+	refreshscr(refresh_flag);
 }
 void ui_t::keyright(void) {
 	int newdy;
@@ -95,13 +101,13 @@ void ui_t::keyright(void) {
 		scry += w/2;
 		refresh_flag = 1;
 	}
-	refresh(refresh_flag);
+	refreshscr(refresh_flag);
 }
 void ui_t::resize(int _h, int _w) {
-	h = _h, w = _w;
+	h = _h-1, w = _w;
 	if (posx >= scrx + h)
 		scrx = posx - (h-1);
 	if (posy >= scry + w)
 		scry = posy - w/2;
-	refresh(1);
+	refreshscr(1);
 }

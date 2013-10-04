@@ -14,7 +14,7 @@ class ui_t {
 		void keyup(void);
 		void keyleft(void);
 		void keyright(void);
-		void refresh(int flag);
+		void refreshscr(int flag);
 		void resize(int _h, int _w);
 };
 #endif
