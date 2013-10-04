@@ -1,7 +1,11 @@
 #include <ncurses.h>
 #include <cstring>
+#include <string>
+#include <vector>
 #include "editor.h"
 #include "ui.h"
+using std::vector;
+using std::string;
 void ui_t::initialize(const char *_file) {
 	posx = posy = realposy = scrx = scry = 0;
 	editor = new editor_t;
@@ -11,23 +15,17 @@ void ui_t::initialize(const char *_file) {
 }
 void ui_t::refresh(int flag) {
 	if (flag) {
-		char *buf = new char[w * h];
-		char **data = new char*[h];
-		int i, j;
-		for (i = 0; i < h; i++)
-			data[i] = buf + i*w;
+		vector<string> data;
 		editor->retrieve(scrx, scry, h, w, data);
-		for (i = 0; i < h; i++) {
+		for (int i = 0; i < h; i++) {
 			move(i, 0);
 			clrtoeol();
-			for (j = 0; j < w; j++)
+			for (int j = 0; j < w; j++)
 				if (data[i][j] != 0 && data[i][j] != '\n')
 					addch(data[i][j] == '\t' ? ' ' : data[i][j]);
 				else
 					break;
 		}
-		delete [] data;
-		delete [] buf;
 	}
 	move(posx - scrx, posy - scry);
 	//refresh();
