@@ -44,6 +44,12 @@ int main(int argc, char **argv) {
 			case 'l':
 				ui->keyright();
 				break;
+			case 10:
+				ui->keypagedown();
+				break;
+			case 11:
+				ui->keypageup();
+				break;
 			default:
 				break;
 		}

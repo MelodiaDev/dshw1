@@ -6,6 +6,7 @@ class ui_t {
 		int posx, posy, scrx, scry, realposy;
 		editor_t *editor;
 		char *file;
+		int window_adjust(void);
 	public:
 		int w, h;
 		ui_t() { }
@@ -14,6 +15,8 @@ class ui_t {
 		void keyup(void);
 		void keyleft(void);
 		void keyright(void);
+		void keypagedown(void);
+		void keypageup(void);
 		void refreshscr(int flag);
 		void resize(int _h, int _w);
 };

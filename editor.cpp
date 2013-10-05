@@ -21,6 +21,10 @@ void editor_t::initialize(const char *file) {
 	}
 }
 
+void editor_t::info(int &num_row, int &num_char) {
+	num_row = nRow, num_char = nChar;
+}
+
 void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& ret) {
 	_line_t::iterator line_it = a.getPos(x);
 	ret.clear();
