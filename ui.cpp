@@ -109,6 +109,18 @@ void ui_t::keypageup(void) {
 	window_adjust();
 	refreshscr(1);
 }
+void ui_t::keytop(void) {
+	posx = editor->aim_to_line(0);
+	posy = 0;
+	window_adjust();
+	refreshscr(1);
+}
+void ui_t::keybottom(void) {
+	posx = editor->aim_to_line(-1);
+	posy = 0;
+	window_adjust();
+	refreshscr(1);
+}
 void ui_t::resize(int _h, int _w) {
 	h = _h-1, w = _w;
 	if (posx >= scrx + h)

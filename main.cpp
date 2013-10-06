@@ -50,6 +50,12 @@ int main(int argc, char **argv) {
 			case 11:
 				ui->keypageup();
 				break;
+			case 'g':
+				ui->keytop();
+				break;
+			case 'G':
+				ui->keybottom();
+				break;
 			default:
 				break;
 		}

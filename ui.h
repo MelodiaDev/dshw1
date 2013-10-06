@@ -17,6 +17,8 @@ class ui_t {
 		void keyright(void);
 		void keypagedown(void);
 		void keypageup(void);
+		void keytop(void);
+		void keybottom(void);
 		void refreshscr(int flag);
 		void resize(int _h, int _w);
 };

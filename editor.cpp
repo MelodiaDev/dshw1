@@ -87,7 +87,7 @@ int editor_t::aim_to_line(int lineno) {
 	int ret;
 	if (lineno >= nRow) ret = nRow - 1; else
 	if (lineno <= -nRow) ret = 0; else
-	if (lineno < 0) ret = nRow - lineno;
+	if (lineno < 0) ret = nRow + lineno;
 	else ret = lineno;
 	Xpos = ret; Ypos = 0;
 	return ret;
