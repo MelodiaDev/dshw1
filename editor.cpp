@@ -140,8 +140,9 @@ void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& re
 				st += char_it->value;
 				j++;
 			} else {
-				for (int k = 0; k < TAB_WIDTH && k < w - j; k++) st += ' ';
-				j += TAB_WIDTH;
+				int _tab = TAB_WIDTH - j % TAB_WIDTH;
+				for (int k = 0; k < _tab && k < w - j; k++) st += ' ';
+				j += _tab;
 			}
 			char_it = line_it->value.Next(char_it);
 		}
