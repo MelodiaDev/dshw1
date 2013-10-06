@@ -58,20 +58,22 @@ void editor_t::go_y(int y, int dy, int &resdy) {
 	if (dy < 0) dy = -dy, dir = 0;
 	resdy = 0;
 	_char_t now = a.getPos(Xpos)->value;
-	_char_t::iterator it = now.begin();
-	for (int i = 0; i < y; it = it->ch[1])
-		if (it->value == '\t') i += 4;
-		else i++;
-	if (!dir) it = it->ch[dir];
-	for (; resdy < dy && it != now.end(); it = it->ch[dir]) {
-		if (it->value == '\t') resdy += 4;
-		else resdy++;
+	_char_t::iterator it = now.getPos(Ypos);
+	int tmp = 0;
+	if (dir == 1) {
+		while (tmp < dy && it->ch[1] != now.end()) {
+			tmp += it->sum - it->ch[0]->sum;
+			it = it->ch[1];
+		}
+	} else {
+		int tmp = 0;
+		while (tmp < dy && it->ch[0] != now.end()) {
+			tmp += it->ch[0]->sum - it->ch[0]->ch[0]->sum;
+			it = it->ch[0];
+		}
+		tmp = -tmp;
 	}
-	if (!dir) {
-		resdy = -resdy;
-		if (it == now.end()) it = now.begin();
-		else it = it->ch[!dir];
-	}
+	resdy = tmp;
 }
 
 void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
