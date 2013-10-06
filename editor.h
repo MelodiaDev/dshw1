@@ -1,6 +1,5 @@
 #ifndef _EDITOR_H_
 #define _EDITOR_H_
-#define TAB_WIDTH 4
 
 #include <vector>
 #include <string>
@@ -20,6 +19,7 @@ class editor_t {
 		void retrieve(int x, int y, int h, int w, std::vector<std::string>&);
 		void go_y(int y, int dy, int &resdy);
 		void go_x(int dx, int y, int &resdx, int &resy);
+		int aim_to_line(int lineno);
 };
 #endif
 

@@ -31,7 +31,7 @@ void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& re
 	for (int i = 0; i < h && line_it != a.end(); i++) {
 		std::string st;
 		_char_t::iterator char_it = line_it->value.begin();
-		int nowy = 0, newy, flag = 0;
+		int nowy = 0, newy;
 		for (; char_it != line_it->value.end();) {
 			if (char_it->value == '\t')
 				newy = nowy + 4;
@@ -81,5 +81,15 @@ void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
 	resdx = Xpos - tmp;
 	Ypos = 0;
 	go_y(0, y, resdy);
+}
+
+int editor_t::aim_to_line(int lineno) {
+	int ret;
+	if (lineno >= nRow) ret = nRow - 1; else
+	if (lineno <= -nRow) ret = 0; else
+	if (lineno < 0) ret = nRow - lineno;
+	else ret = lineno;
+	Xpos = ret; Ypos = 0;
+	return ret;
 }
 

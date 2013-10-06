@@ -3,6 +3,8 @@
 #ifndef CIRCLE_H
 #define CIRCLE_H
 
+#define TAB_WIDTH 4
+
 /*
  * Please use CamelCase to define a variable. Such as "getPosAt", not "GetPosAt" or "get_pos_at"
  *
@@ -13,8 +15,9 @@ template <class T>
 class _editor_list { // Container of the list class
 	public:
 	T value; 
+	int sum;
 	_editor_list *ch[2]; // next[0] means the next node, and next[1] means the previous node
-	_editor_list(_editor_list* null = 0) {ch[0] = ch[1] = null;}
+	_editor_list(_editor_list* null = 0) {ch[0] = ch[1] = null; sum = 0;}
 };
 
 template <class T>
@@ -26,6 +29,8 @@ class editor_list {
 
 	public:
 	typedef _container* iterator;
+
+	bool operator ==(const int& oth) const {if (oth == '\t') return false; return false;}
 
 	private:
 	/*
@@ -125,6 +130,19 @@ class editor_list {
 	 * Get the previous iterator
 	 */
 	iterator Prev(const iterator&);
+
+	/*
+	 * Update the sum from now
+	 */
+	void Update(iterator tmp) {
+		int t = tmp->ch[0]->sum;
+		for (; tmp != null; tmp = tmp->ch[1]) {
+			if (tmp->value == '\t') {
+				t = (t + TAB_WIDTH) / TAB_WIDTH * TAB_WIDTH;
+			} else t++;
+			tmp->sum = t;
+		}
+	}
 };
 
 template<class T>
@@ -166,15 +184,19 @@ typename editor_list<T>::iterator editor_list<T>::insert(const typename editor_l
 	now->ch[0]->ch[1] = ret;
 	now->ch[0] = ret;
 	if (now == head) head = ret;
+	Update(ret);
 	return ret;
 }
 
 template<class T>
 typename editor_list<T>::iterator editor_list<T>::erase(const typename editor_list<T>::iterator &begin) {
+	iterator ret = begin->ch[1];
 	begin->ch[0]->ch[1] = begin->ch[1];
 	begin->ch[1]->ch[0] = begin->ch[0];
 	if (begin == head) head = begin->ch[1];
 	delete begin;
+	Update(ret);
+	return ret;
 }
 
 template<class T>
@@ -188,6 +210,7 @@ typename editor_list<T>::iterator editor_list<T>::erase(const typename editor_li
 		tmp = _t;
 	}
 	if (begin == head) head = end;
+	Update(end);
 	return end;
 }
 
