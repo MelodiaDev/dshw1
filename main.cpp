@@ -9,7 +9,6 @@ void handle_winch(int sig) {
 	clear();
 	getmaxyx(stdscr, h, w);
 	ui->resize(h, w);
-	refresh();
 }
 int main(int argc, char **argv) {
 	initscr();
@@ -21,9 +20,11 @@ int main(int argc, char **argv) {
 	getmaxyx(stdscr, h, w);
 	signal(SIGWINCH, handle_winch);
 	ui = new ui_t;
-	ui->initialize(argv[1]);
-	ui->w = w, ui->h = h;
-	ui->refresh(1);
+	if (argc < 2)
+		ui->initialize("");
+	else
+		ui->initialize(argv[1]);
+	ui->resize(h, w);
 	while (1) {
 		int ch = getch();
 		int endflag = 0;
@@ -42,6 +43,12 @@ int main(int argc, char **argv) {
 				break;
 			case 'l':
 				ui->keyright();
+				break;
+			case 10:
+				ui->keypagedown();
+				break;
+			case 11:
+				ui->keypageup();
 				break;
 			default:
 				break;

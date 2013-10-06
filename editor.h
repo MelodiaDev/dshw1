@@ -16,6 +16,7 @@ class editor_t {
 	public:
 		editor_t() { }
 		void initialize(const char *file);
+		void info(int &num_row, int &num_char);
 		void retrieve(int x, int y, int h, int w, std::vector<std::string>&);
 		void go_y(int y, int dy, int &resdy);
 		void go_x(int dx, int y, int &resdx, int &resy);

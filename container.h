@@ -223,12 +223,12 @@ void editor_list<T>::clear(void) {
 }
 
 template<class T>
-typename editor_list<T>::iterator Next(const typename editor_list<T>::iterator& now) {
+typename editor_list<T>::iterator editor_list<T>::Next(const typename editor_list<T>::iterator& now) {
 	return now->ch[1];
 }
 
 template<class T>
-typename editor_list<T>::iterator Prev(const typename editor_list<T>::iterator& now) {
+typename editor_list<T>::iterator editor_list<T>::Prev(const typename editor_list<T>::iterator& now) {
 	return now->ch[0];
 }
 
