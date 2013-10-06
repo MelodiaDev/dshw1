@@ -46,9 +46,13 @@ void ui_t::refreshscr(int flag) {
 	}
 	move(h, 0);
 	clrtoeol();
-	move(h, 10);
-	printw("%s", file[0] ? file : "[NEW]");
-	refresh();
+	if (w-20-10-2 >= 0) {
+		move(h, 10);
+		char fmt[10];
+		sprintf(fmt, "%%.%ds", w-20-10-2);
+		printw(fmt, file[0] ? file : "[NEW]");
+		refresh();
+	}
 	move(h, w-20);
 	printw(" %d,%d", posx, posy);
 	refresh();

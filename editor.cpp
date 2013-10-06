@@ -34,7 +34,7 @@ void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& re
 		int nowy = 0, newy;
 		for (; char_it != line_it->value.end();) {
 			if (char_it->value == '\t')
-				newy = nowy + 4;
+				newy = (nowy + TAB_WIDTH) / TAB_WIDTH * TAB_WIDTH;
 			else
 				newy = nowy + 1;
 			for (int k = (nowy < y ? y : nowy); k < newy && k < y+w; k++)
@@ -64,12 +64,13 @@ void editor_t::go_y(int y, int dy, int &resdy) {
 		while (tmp < dy && it->ch[1] != now.end()) {
 			tmp += it->sum - it->ch[0]->sum;
 			it = it->ch[1];
+			Ypos++;
 		}
 	} else {
-		int tmp = 0;
 		while (tmp < dy && it->ch[0] != now.end()) {
 			tmp += it->ch[0]->sum - it->ch[0]->ch[0]->sum;
 			it = it->ch[0];
+			Ypos--;
 		}
 		tmp = -tmp;
 	}
