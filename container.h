@@ -170,8 +170,8 @@ unsigned int editor_list<T>::getWhere(const iterator& now) const {
 
 template<class T>
 typename editor_list<T>::iterator editor_list<T>::getPosAt(const typename editor_list<T>::iterator& begin, const int &bias) const {
-	iterator ret = begin;
-	for (int i = 0; i < bias && ret != null; i++) ret = ret->ch[1];
+	iterator ret = begin; int dir = 1, b = bias; if (bias < 0) b = -bias, dir = 0;
+	for (int i = 0; i < b&& ret != null; i++) ret = ret->ch[dir];
 	return ret;
 }
 

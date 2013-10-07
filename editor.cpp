@@ -96,3 +96,9 @@ int editor_t::aim_to_line(int lineno) {
 	return ret;
 }
 
+void editor_t::erase(int now, int bias) {
+	_line_t::iterator it = a.getPos(now);
+	_line_t::iterator ot = a.getPosAt(it, bias);
+	if (bias < 0) a.erase(ot, it->ch[1]); else a.erase(it, ot->ch[1]);
+}
+

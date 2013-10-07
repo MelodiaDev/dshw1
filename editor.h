@@ -20,6 +20,7 @@ class editor_t {
 		void go_y(int y, int dy, int &resdy);
 		void go_x(int dx, int y, int &resdx, int &resy);
 		int aim_to_line(int lineno);
+		void erase(int now, int bias = 0);
 };
 #endif
 
