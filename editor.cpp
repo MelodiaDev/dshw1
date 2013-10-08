@@ -6,7 +6,7 @@
 
 void editor_t::initialize(const char *file) {
 	FILE *fp = fopen(file, "r");
-	int c, lastc = -1;
+	int c;
 	Xpos = Ypos = nRow = nCol = nChar = 0;
 	if (fp == NULL) return;
 	_char_t* tmp = new _char_t;
@@ -19,12 +19,9 @@ void editor_t::initialize(const char *file) {
 			nRow++;
 		}
 		nChar++;
-		lastc = (unsigned) c;
 	}
-	if (lastc >= 0 && lastc != '\n') {
-		a.insert(a.end(), *tmp);
-		nRow++;
-	}
+	a.insert(a.end(), *tmp);
+	nRow++;
 	Xit = a.begin();
 	Yit = Xit->value.begin();
 }
