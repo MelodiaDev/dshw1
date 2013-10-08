@@ -1,7 +1,7 @@
 #include <ncurses.h>
 #include <signal.h>
 #include "ui.h"
-int w, h;
+int w, h, ctrlh2kbs;
 ui_t *ui;
 void handle_winch(int sig) {
 	endwin();
@@ -10,12 +10,22 @@ void handle_winch(int sig) {
 	getmaxyx(stdscr, h, w);
 	ui->resize(h, w);
 }
+int fixed_getch(void) {
+	int ch = getch();
+	if (ctrlh2kbs && ch == KEY_BACKSPACE)
+		ch = 8;
+	if (ch == 127)
+		ch = KEY_BACKSPACE;
+	return ch;
+}
 int main(int argc, char **argv) {
 	initscr();
 	raw();
 	nonl();
 	noecho();
 	keypad(stdscr, TRUE);
+	const char *kbs_seq = tparm(tigetstr("kbs"));
+	if (kbs_seq[0] == 8 && kbs_seq[1] == 0) ctrlh2kbs = 1;
 	set_escdelay(25);
 	getmaxyx(stdscr, h, w);
 	signal(SIGWINCH, handle_winch);
@@ -26,7 +36,7 @@ int main(int argc, char **argv) {
 		ui->initialize(argv[1]);
 	ui->resize(h, w);
 	while (1) {
-		int ch = getch();
+		int ch = fixed_getch();
 		int endflag = 0;
 		switch(ch) {
 			case 'q':
@@ -50,7 +60,7 @@ int main(int argc, char **argv) {
 			case 11:
 				ui->keypageup();
 				break;
-			case KEY_BACKSPACE: case 8:
+			case 8:
 				ui->keypageleft();
 				break;
 			case 12:
