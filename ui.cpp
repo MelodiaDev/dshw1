@@ -56,7 +56,7 @@ void ui_t::refreshscr(int flag) {
 		refresh();
 	}
 	move(h, w-20);
-	printw(" %d,%d", posx, posy);
+	printw(" %d,%d", posx+1, posy+1);
 	refresh();
 	move(posx - scrx, posy - scry);
 	refresh();

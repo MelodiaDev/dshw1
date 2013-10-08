@@ -6,7 +6,7 @@
 
 void editor_t::initialize(const char *file) {
 	FILE *fp = fopen(file, "r");
-	int c;
+	int c, lastc = -1;
 	Xpos = Ypos = nRow = nCol = nChar = 0;
 	if (fp == NULL) return;
 	_char_t* tmp = new _char_t;
@@ -19,8 +19,9 @@ void editor_t::initialize(const char *file) {
 			nRow++;
 		}
 		nChar++;
+		lastc = (unsigned) c;
 	}
-	if (c != '\n') {
+	if (lastc >= 0 && lastc != '\n') {
 		a.insert(a.end(), *tmp);
 		nRow++;
 	}
@@ -66,7 +67,7 @@ void editor_t::go_y(int y, int dy, int &resdy) {
 	_char_t::iterator it = now.getPos(Ypos);
 	int tmp = 0;
 	if (dir == 1) {
-		while (tmp < dy && it->ch[1] != now.end()) {
+		while (tmp < dy && it != now.end()) {
 			tmp += it->sum - it->ch[0]->sum;
 			it = it->ch[1];
 			Ypos++;
