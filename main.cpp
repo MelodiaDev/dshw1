@@ -63,7 +63,10 @@ int main(int argc, char **argv) {
 				ui->keybottom();
 				break;
 			case 'd':
-				ui->keydelete();
+				ui->keydeletedown();
+				break;
+			case 'D':
+				ui->keydeleteup();
 				break;
 			default:
 				break;

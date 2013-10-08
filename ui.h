@@ -22,7 +22,8 @@ class ui_t {
 		void keypageright(void);
 		void keytop(void);
 		void keybottom(void);
-		void keydelete(void);
+		void keydeletedown(void);
+		void keydeleteup(void);
 		void refreshscr(int flag);
 		void resize(int _h, int _w);
 };

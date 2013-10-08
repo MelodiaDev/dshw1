@@ -57,7 +57,7 @@ void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& re
 	}
 }
 
-void editor_t::go_y(int y, int dy, int &resdy) {
+void editor_t::go_y(int dy, int &resdy) {
 	int dir = 1;
 	if (dy < 0) dy = -dy, dir = 0;
 	resdy = 0;
@@ -89,7 +89,7 @@ void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
 	if (Xpos >= nRow) Xpos = nRow - 1;
 	resdx = Xpos - tmp;
 	Ypos = 0;
-	go_y(0, y, resdy);
+	go_y(y, resdy);
 }
 
 int editor_t::aim_to_line(int lineno) {

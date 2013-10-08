@@ -23,6 +23,8 @@ int ui_t::window_adjust(void) {
 		scry += ((posy - scry - w) / (w/2) + 1) * (w/2);
 		flag = 1;
 	}
+	if (scrx + h > rows) scrx = rows - h;
+	if (scrx < 0) scrx = 0;
 	return flag;
 }
 void ui_t::initialize(const char *_file) {
@@ -79,7 +81,7 @@ void ui_t::keydown(void) {
 }
 void ui_t::keyleft(void) {
 	int newdy;
-	editor->go_y(posy, -1, newdy);
+	editor->go_y(-1, newdy);
 	posy += newdy;
 	realposy = posy;
 	if (newdy == 0) return;
@@ -88,7 +90,7 @@ void ui_t::keyleft(void) {
 }
 void ui_t::keyright(void) {
 	int newdy;
-	editor->go_y(posy, 1, newdy);
+	editor->go_y(1, newdy);
 	posy += newdy;
 	realposy = posy;
 	if (newdy == 0) return;
@@ -98,7 +100,6 @@ void ui_t::keyright(void) {
 void ui_t::keypageup(void) {
 	int newdx, newy;
 	scrx -= h/2;
-	if (scrx < 0) scrx = 0;
 	editor->go_x(-h/2, realposy, newdx, newy);
 	posx += newdx, posy = newy;
 	window_adjust();
@@ -107,8 +108,6 @@ void ui_t::keypageup(void) {
 void ui_t::keypagedown(void) {
 	int newdx, newy;
 	scrx += h/2;
-	if (scrx + h > rows) scrx = rows - h;
-	if (scrx < 0) scrx = 0;
 	editor->go_x(h/2, realposy, newdx, newy);
 	posx += newdx, posy = newy;
 	window_adjust();
@@ -118,7 +117,7 @@ void ui_t::keypageleft(void) {
 	int newdy;
 	scry -= w/2;
 	if (scry < 0) scry = 0;
-	editor->go_y(posy, -w/2, newdy);
+	editor->go_y(-w/2, newdy);
 	posy += newdy;
 	realposy = posy;
 	window_adjust();
@@ -127,7 +126,7 @@ void ui_t::keypageleft(void) {
 void ui_t::keypageright(void) {
 	int newdy;
 	scry += w/2;
-	editor->go_y(posy, w/2, newdy);
+	editor->go_y(w/2, newdy);
 	posy += newdy;
 	realposy = posy;
 	window_adjust();
@@ -145,24 +144,22 @@ void ui_t::keybottom(void) {
 	window_adjust();
 	refreshscr(1);
 }
-void ui_t::keydelete(void) {
-	editor->erase(posx);
+void ui_t::keydeletedown(void) {
+	if (posx == rows-1) return;
+	editor->erase(1);
 	rows--;
-	int dx = 0, newdx;
-	if (posx >= rows && posx > 0) {
-		dx = -1;
-		posx = rows-1;
-	}
-	editor->go_x(dx, realposy, newdx, posy);
+	window_adjust();
+	refreshscr(1);
+}
+void ui_t::keydeleteup(void) {
+	if (posx == 0) return;
+	editor->erase(-1);
+	rows--; posx--, scrx--;
+	window_adjust();
 	refreshscr(1);
 }
 void ui_t::resize(int _h, int _w) {
 	h = _h-1, w = _w;
-	if (posx >= scrx + h)
-		scrx = posx - (h-1);
-	if (posy >= scry + w)
-		scry = posy - w/2;
-	if (scrx + h > rows) scrx = rows - h;
-	if (scrx < 0) scrx = 0;
+	window_adjust();
 	refreshscr(1);
 }
