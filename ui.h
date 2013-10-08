@@ -24,6 +24,8 @@ class ui_t {
 		void keybottom(void);
 		void keydeletedown(void);
 		void keydeleteup(void);
+		void keyinsertdown(void);
+		void keyinsertup(void);
 		void refreshscr(int flag);
 		void resize(int _h, int _w);
 };

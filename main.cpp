@@ -68,6 +68,12 @@ int main(int argc, char **argv) {
 			case 'D':
 				ui->keydeleteup();
 				break;
+			case 'o':
+				ui->keyinsertdown();
+				break;
+			case 'O':
+				ui->keyinsertup();
+				break;
 			default:
 				break;
 		}

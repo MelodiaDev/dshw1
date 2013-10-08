@@ -147,6 +147,7 @@ void ui_t::keybottom(void) {
 void ui_t::keydeletedown(void) {
 	if (posx == rows-1) return;
 	editor->erase(1);
+	posy = realposy = 0;
 	rows--;
 	window_adjust();
 	refreshscr(1);
@@ -154,7 +155,22 @@ void ui_t::keydeletedown(void) {
 void ui_t::keydeleteup(void) {
 	if (posx == 0) return;
 	editor->erase(-1);
+	posy = realposy = 0;
 	rows--; posx--, scrx--;
+	window_adjust();
+	refreshscr(1);
+}
+void ui_t::keyinsertdown(void) {
+	editor->insert(1);
+	posy = realposy = 0;
+	rows++; posx++;
+	window_adjust();
+	refreshscr(1);
+}
+void ui_t::keyinsertup(void) {
+	editor->insert(0);
+	posy = realposy = 0;
+	rows++; scrx++;
 	window_adjust();
 	refreshscr(1);
 }

@@ -82,31 +82,31 @@ class editor_list {
 	/*
 	 * Count the number of items before  the current item.
 	 */
-	unsigned int getWhere(const iterator& now) const;
+	unsigned int getWhere(iterator now) const;
 
 	/*
 	 * Get the next bias-th item from the begin position, when bias is positive.
 	 * And the direction is previous when bias is negative.
 	 */
-	iterator getPosAt(const iterator& begin, const int& bias) const;
+	iterator getPosAt(iterator begin, const int& bias) const;
 
 	/*
 	 * Insert a item in the FRONT of the iterator "now"
 	 * Return the iterator where the new item located
 	 */
-	iterator insert(const iterator& now, const T& value);
+	iterator insert(iterator now, const T& value);
 
 
 	/*
 	 * Erase the item which located at the "now", and return the next iterator behind the "now"
 	 */
-	iterator erase( const iterator& now);
+	iterator erase( iterator now);
 
 	/*
 	 * Erase an interval from the begin to the from the end, "begin" inclusive and "end" NOT inclusive.
 	 * Return the next iterator behind the deleted inteval
 	 */
-	iterator erase(const iterator& begin, const iterator& end) ;
+	iterator erase(iterator begin, iterator end) ;
 
 	/*
 	 * Find the first position where the pattern matched. Please use KMP algorithm.
@@ -114,7 +114,7 @@ class editor_list {
 	 * Use "static" keywords instead, and clear the array before every time used.
 	 * Return the beginning of the first mathched. If there is no matched, just return null.
 	 */
-	iterator match(const std::string& pattern, const iterator& begin);
+	iterator match(const std::string& pattern, iterator begin);
 
 	/*
 	 * clear the list
@@ -124,12 +124,12 @@ class editor_list {
 	/*
 	 * Get the next iterator
 	 */
-	iterator Next(const iterator&);
+	iterator Next(iterator);
 
 	/*
 	 * Get the previous iterator
 	 */
-	iterator Prev(const iterator&);
+	iterator Prev(iterator);
 
 	/*
 	 * Update the sum from now
@@ -161,7 +161,7 @@ unsigned int editor_list<T>::size(void) const {
 }
 
 template<class T>
-unsigned int editor_list<T>::getWhere(const iterator& now) const {
+unsigned int editor_list<T>::getWhere(iterator now) const {
 	int ret = 0;
 	iterator tmp = now;
 	while (tmp->ch[0] != null) tmp = tmp->ch[0], ret++;
@@ -169,15 +169,15 @@ unsigned int editor_list<T>::getWhere(const iterator& now) const {
 }
 
 template<class T>
-typename editor_list<T>::iterator editor_list<T>::getPosAt(const typename editor_list<T>::iterator& begin, const int &bias) const {
+typename editor_list<T>::iterator editor_list<T>::getPosAt(typename editor_list<T>::iterator begin, const int &bias) const {
 	iterator ret = begin; int dir = 1, b = bias; if (bias < 0) b = -bias, dir = 0;
 	for (int i = 0; i < b && ret->ch[dir] != null; i++) ret = ret->ch[dir];
 	return ret;
 }
 
 template<class T>
-typename editor_list<T>::iterator editor_list<T>::insert(const typename editor_list<T>::iterator& now, const T& value) {
-	iterator ret = new _container(null);
+typename editor_list<T>::iterator editor_list<T>::insert(typename editor_list<T>::iterator now, const T& value) {
+	iterator ret = new _container(null), prev = now->ch[0];
 	ret->value = value;
 	ret->ch[1] = now;
 	ret->ch[0] = now->ch[0];
@@ -189,7 +189,7 @@ typename editor_list<T>::iterator editor_list<T>::insert(const typename editor_l
 }
 
 template<class T>
-typename editor_list<T>::iterator editor_list<T>::erase(const typename editor_list<T>::iterator &begin) {
+typename editor_list<T>::iterator editor_list<T>::erase(typename editor_list<T>::iterator begin) {
 	iterator ret = begin->ch[1];
 	begin->ch[0]->ch[1] = begin->ch[1];
 	begin->ch[1]->ch[0] = begin->ch[0];
@@ -200,7 +200,7 @@ typename editor_list<T>::iterator editor_list<T>::erase(const typename editor_li
 }
 
 template<class T>
-typename editor_list<T>::iterator editor_list<T>::erase(const typename editor_list<T>::iterator &begin, const typename editor_list<T>::iterator& end) {
+typename editor_list<T>::iterator editor_list<T>::erase(typename editor_list<T>::iterator begin, typename editor_list<T>::iterator end) {
 	begin->ch[0]->ch[1] = end;
 	end->ch[0] = begin->ch[0];
 	iterator tmp = begin, _t;
@@ -215,7 +215,7 @@ typename editor_list<T>::iterator editor_list<T>::erase(const typename editor_li
 }
 
 template<class T>
-typename editor_list<T>::iterator editor_list<T>::match(const std::string& pattern, const iterator& begin) {
+typename editor_list<T>::iterator editor_list<T>::match(const std::string& pattern, iterator begin) {
 	int *next = new int[pattern.length()], j = -1; next[0] = -1;
 	for (int i = 1; i < pattern.length(); i++) {
 		while (j != -1 && pattern[i] != pattern[j + 1]) j = next[j];
@@ -246,12 +246,12 @@ void editor_list<T>::clear(void) {
 }
 
 template<class T>
-typename editor_list<T>::iterator editor_list<T>::Next(const typename editor_list<T>::iterator& now) {
+typename editor_list<T>::iterator editor_list<T>::Next(typename editor_list<T>::iterator now) {
 	return now->ch[1];
 }
 
 template<class T>
-typename editor_list<T>::iterator editor_list<T>::Prev(const typename editor_list<T>::iterator& now) {
+typename editor_list<T>::iterator editor_list<T>::Prev(typename editor_list<T>::iterator now) {
 	return now->ch[0];
 }
 
