@@ -25,6 +25,7 @@ void editor_t::initialize(const char *file) {
 		a.insert(a.end(), *tmp);
 		nRow++;
 	}
+	Xit = a.begin();
 }
 
 void editor_t::info(int &num_row, int &num_char) {
@@ -84,7 +85,9 @@ void editor_t::go_y(int y, int dy, int &resdy) {
 }
 
 void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
-	int tmp = Xpos; Xpos += dx;
+	int tmp = Xpos; 
+	Xit = a.getPosAt(Xit, dx);
+	Xpos += dx;
 	if (Xpos < 0) Xpos = 0;
 	if (Xpos >= nRow) Xpos = nRow - 1;
 	resdx = Xpos - tmp;
@@ -97,13 +100,21 @@ int editor_t::aim_to_line(int lineno) {
 	if (lineno >= nRow) ret = nRow - 1;
 	else ret = lineno;
 	Xpos = ret; Ypos = 0;
+	Xit = a.getPos(Xpos);
 	return ret;
 }
 
 void editor_t::erase(int now, int bias) {
-	_line_t::iterator it = a.getPos(now);
+	_line_t::iterator it = Xit;
 	_line_t::iterator ot = a.getPosAt(it, bias);
-	if (bias < 0) a.erase(ot, it->ch[1]); else a.erase(it, ot->ch[1]);
+	if (bias < 0) a.erase(ot, it->ch[1]), Xit = it->ch[1]; else a.erase(it, ot->ch[1]), Xit = ot->ch[1];
 	nRow -= abs(bias)+1;
+}
+
+void editor_t::insert(int now) {
+	_char_t *tmp = new _char_t();
+	a.insert(Xit->ch[1], *tmp);
+	Xit = Xit->ch[1];
+	nRow++;
 }
 
