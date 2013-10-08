@@ -147,8 +147,18 @@ class editor_list {
 
 template<class T>
 typename editor_list<T>::iterator editor_list<T>::getPos(const int& index) const {
-	iterator ret = head;
-	for (int i = 0; i < index && ret != null; i++) ret = ret->ch[1];
+	iterator ret;
+	if (index >= 0) {
+		ret = head;
+		for (int i = 0; i < index && ret != null; i++) ret = ret->ch[1];
+	}
+	else {
+		ret = null->ch[0];
+		int tmp = -index;
+		for (int i = 1; i < tmp && ret->ch[0] != null; i++) {
+			ret = ret->ch[0];
+		}
+	}
 	return ret;
 }
 
