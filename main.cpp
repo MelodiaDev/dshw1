@@ -29,19 +29,19 @@ int main(int argc, char **argv) {
 		int ch = getch();
 		int endflag = 0;
 		switch(ch) {
-			case 3:
+			case 'q':
 				endflag = 1;
 				break;
-			case 'j':
+			case 'j': case KEY_DOWN:
 				ui->keydown();
 				break;
-			case 'k':
+			case 'k': case KEY_UP:
 				ui->keyup();
 				break;
-			case 'h':
+			case 'h': case KEY_LEFT:
 				ui->keyleft();
 				break;
-			case 'l':
+			case 'l': case KEY_RIGHT:
 				ui->keyright();
 				break;
 			case 10:
