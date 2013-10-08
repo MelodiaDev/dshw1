@@ -29,6 +29,8 @@ void ui_t::initialize(const char *_file) {
 	posx = posy = realposy = scrx = scry = 0;
 	editor = new editor_t;
 	editor->initialize(_file);
+	int chars;
+	editor->info(rows, chars);
 	file = new char[strlen(_file)+1];
 	strcpy(file, _file);
 }
@@ -59,17 +61,17 @@ void ui_t::refreshscr(int flag) {
 	move(posx - scrx, posy - scry);
 	refresh();
 }
-void ui_t::keydown(void) {
+void ui_t::keyup(void) {
 	int newdx, newy;
-	editor->go_x(1, realposy, newdx, newy);
+	editor->go_x(-1, realposy, newdx, newy);
 	if (newdx == 0) return;
 	posx += newdx, posy = newy;
 	int refresh_flag = window_adjust();
 	refreshscr(refresh_flag);
 }
-void ui_t::keyup(void) {
+void ui_t::keydown(void) {
 	int newdx, newy;
-	editor->go_x(-1, realposy, newdx, newy);
+	editor->go_x(1, realposy, newdx, newy);
 	if (newdx == 0) return;
 	posx += newdx, posy = newy;
 	int refresh_flag = window_adjust();
@@ -93,23 +95,41 @@ void ui_t::keyright(void) {
 	int refresh_flag = window_adjust();
 	refreshscr(refresh_flag);
 }
-void ui_t::keypagedown(void) {
-	int newdx, newy;
-	editor->go_x(h/2 + scrx + h-1 - posx, realposy, newdx, newy);
-	posx += newdx;
-	scrx = posx - (h-1);
-	if (scrx < 0) scrx = 0;
-	editor->go_x(h/2 - newdx, realposy, newdx, newy);
-	posx += newdx, posy = newy;
-	window_adjust();
-	refreshscr(1);
-}
 void ui_t::keypageup(void) {
 	int newdx, newy;
 	scrx -= h/2;
 	if (scrx < 0) scrx = 0;
 	editor->go_x(-h/2, realposy, newdx, newy);
 	posx += newdx, posy = newy;
+	window_adjust();
+	refreshscr(1);
+}
+void ui_t::keypagedown(void) {
+	int newdx, newy;
+	scrx += h/2;
+	if (scrx + h > rows) scrx = rows - h;
+	if (scrx < 0) scrx = 0;
+	editor->go_x(h/2, realposy, newdx, newy);
+	posx += newdx, posy = newy;
+	window_adjust();
+	refreshscr(1);
+}
+void ui_t::keypageleft(void) {
+	int newdy;
+	scry -= w/2;
+	if (scry < 0) scry = 0;
+	editor->go_y(posy, -w/2, newdy);
+	posy += newdy;
+	realposy = posy;
+	window_adjust();
+	refreshscr(1);
+}
+void ui_t::keypageright(void) {
+	int newdy;
+	scry += w/2;
+	editor->go_y(posy, w/2, newdy);
+	posy += newdy;
+	realposy = posy;
 	window_adjust();
 	refreshscr(1);
 }
@@ -120,9 +140,20 @@ void ui_t::keytop(void) {
 	refreshscr(1);
 }
 void ui_t::keybottom(void) {
-	posx = editor->aim_to_line(-1);
+	posx = editor->aim_to_line(rows-1);
 	posy = 0;
 	window_adjust();
+	refreshscr(1);
+}
+void ui_t::keydelete(void) {
+	editor->erase(posx);
+	rows--;
+	int dx = 0, newdx;
+	if (posx >= rows && posx > 0) {
+		dx = -1;
+		posx = rows-1;
+	}
+	editor->go_x(dx, realposy, newdx, posy);
 	refreshscr(1);
 }
 void ui_t::resize(int _h, int _w) {
@@ -131,12 +162,7 @@ void ui_t::resize(int _h, int _w) {
 		scrx = posx - (h-1);
 	if (posy >= scry + w)
 		scry = posy - w/2;
-	int resdx, resy;
-	editor->go_x(scrx + h-1 - posx, posy, resdx, resy);
-	if (resdx < scrx + h-1 - posx) {
-		scrx = posx + resdx - (h-1);
-		if (scrx < 0) scrx = 0;
-	}
-	editor->go_x(-resdx, posy, resdx, resy);
+	if (scrx + h > rows) scrx = rows - h;
+	if (scrx < 0) scrx = 0;
 	refreshscr(1);
 }

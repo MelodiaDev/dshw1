@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <cstdlib>
 
 #include "editor.h"
 #include "container.h"
@@ -18,6 +19,10 @@ void editor_t::initialize(const char *file) {
 			nRow++;
 		}
 		nChar++;
+	}
+	if (c != '\n') {
+		a.insert(a.end(), *tmp);
+		nRow++;
 	}
 }
 
@@ -88,9 +93,7 @@ void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
 
 int editor_t::aim_to_line(int lineno) {
 	int ret;
-	if (lineno >= nRow) ret = nRow - 1; else
-	if (lineno <= -nRow) ret = 0; else
-	if (lineno < 0) ret = nRow + lineno;
+	if (lineno >= nRow) ret = nRow - 1;
 	else ret = lineno;
 	Xpos = ret; Ypos = 0;
 	return ret;
@@ -100,5 +103,6 @@ void editor_t::erase(int now, int bias) {
 	_line_t::iterator it = a.getPos(now);
 	_line_t::iterator ot = a.getPosAt(it, bias);
 	if (bias < 0) a.erase(ot, it->ch[1]); else a.erase(it, ot->ch[1]);
+	nRow -= abs(bias)+1;
 }
 

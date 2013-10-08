@@ -4,6 +4,7 @@
 class ui_t {
 	protected:
 		int posx, posy, scrx, scry, realposy;
+		int rows;
 		editor_t *editor;
 		char *file;
 		int window_adjust(void);
@@ -11,14 +12,17 @@ class ui_t {
 		int w, h;
 		ui_t() { }
 		void initialize(const char *file);
-		void keydown(void);
 		void keyup(void);
+		void keydown(void);
 		void keyleft(void);
 		void keyright(void);
-		void keypagedown(void);
 		void keypageup(void);
+		void keypagedown(void);
+		void keypageleft(void);
+		void keypageright(void);
 		void keytop(void);
 		void keybottom(void);
+		void keydelete(void);
 		void refreshscr(int flag);
 		void resize(int _h, int _w);
 };
