@@ -22,6 +22,7 @@ class editor_t {
 		int aim_to_line(int lineno);
 		void erase(int bias);
 		void insert(int dir = 0);
+		void insert_c(int);
 };
 #endif
 

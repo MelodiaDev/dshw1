@@ -133,3 +133,7 @@ void editor_t::insert(int dir) {
 	nRow++;
 }
 
+void editor_t::insert_c(int c) {
+	Yit = Xit->value.insert(Yit, c);
+}
+
