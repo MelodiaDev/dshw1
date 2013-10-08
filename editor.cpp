@@ -26,6 +26,7 @@ void editor_t::initialize(const char *file) {
 		nRow++;
 	}
 	Xit = a.begin();
+	Yit = Xit->value.begin();
 }
 
 void editor_t::info(int &num_row, int &num_char) {
@@ -60,21 +61,21 @@ void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& re
 	}
 }
 
-void editor_t::go_y(int y, int dy, int &resdy) {
+void editor_t::go_y(int dy, int &resdy) {
 	int dir = 1;
 	if (dy < 0) dy = -dy, dir = 0;
 	resdy = 0;
-	_char_t now = a.getPos(Xpos)->value;
-	_char_t::iterator it = now.getPos(Ypos);
+	int back_y = Ypos;
+	_char_t::iterator it = Yit;
 	int tmp = 0;
 	if (dir == 1) {
-		while (tmp < dy && it != now.end()) {
+		while (tmp < dy && it != Xit->value.end()) {
 			tmp += it->sum - it->ch[0]->sum;
 			it = it->ch[1];
 			Ypos++;
 		}
 	} else {
-		while (tmp < dy && it->ch[0] != now.end()) {
+		while (tmp < dy && it->ch[0] != Xit->value.end()) {
 			tmp += it->ch[0]->sum - it->ch[0]->ch[0]->sum;
 			it = it->ch[0];
 			Ypos--;
@@ -82,6 +83,7 @@ void editor_t::go_y(int y, int dy, int &resdy) {
 		tmp = -tmp;
 	}
 	resdy = tmp;
+	Yit = Xit->value.getPosAt(Yit, Ypos - back_y);
 }
 
 void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
@@ -91,8 +93,8 @@ void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
 	if (Xpos < 0) Xpos = 0;
 	if (Xpos >= nRow) Xpos = nRow - 1;
 	resdx = Xpos - tmp;
-	Ypos = 0;
-	go_y(0, y, resdy);
+	Ypos = 0; Yit = Xit->value.begin();
+	go_y(y, resdy);
 }
 
 int editor_t::aim_to_line(int lineno) {
@@ -101,20 +103,36 @@ int editor_t::aim_to_line(int lineno) {
 	else ret = lineno;
 	Xpos = ret; Ypos = 0;
 	Xit = a.getPos(Xpos);
+	Yit = Xit->value.begin();
 	return ret;
 }
 
-void editor_t::erase(int now, int bias) {
+void editor_t::erase(int bias) {
+	int sig = 1; if (bias < 0) sig = -1, bias = -bias;
 	_line_t::iterator it = Xit;
-	_line_t::iterator ot = a.getPosAt(it, bias);
-	if (bias < 0) a.erase(ot, it->ch[1]), Xit = it->ch[1]; else a.erase(it, ot->ch[1]), Xit = ot->ch[1];
-	nRow -= abs(bias)+1;
+	_line_t::iterator ot = a.getPosAt(it, sig * (bias - 1));
+	if (sig < 0) {
+		Xit = a.erase(ot, it->ch[1]), Yit = Xit->value.begin(); 
+		Xpos -= bias;
+	}
+	else {
+		Xit = a.erase(it, ot->ch[1]), Yit = Xit->value.begin();
+	}
+	Ypos = 0;
+	nRow -= bias+1;
 }
 
-void editor_t::insert(int now) {
+void editor_t::insert(int dir = 0) {
 	_char_t *tmp = new _char_t();
-	a.insert(Xit->ch[1], *tmp);
-	Xit = Xit->ch[1];
+	if (dir == 0) {
+		a.insert(Xit, *tmp);
+	} else {
+		a.insert(Xit->ch[1], *tmp);
+		Xpos++;
+	}
+	Xit = Xit->ch[dir];
+	Yit = Xit->value.begin();
+	Ypos = 0;
 	nRow++;
 }
 
