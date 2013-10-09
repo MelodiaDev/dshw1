@@ -49,21 +49,21 @@ class editor_list {
 
 	public:
 	editor_list() {head = null = &Tnull; null->ch[0] = null->ch[1] = null;}
-	editor_list(T* l, T* r) {
+	editor_list(iterator l, iterator r) {
 		head = null = &Tnull;
 		null->ch[0] = null->ch[1] = null;
-		T* _l = l, *_r = r;
-		while (_l != _r) {
-			T now = *_l;
+		while (l != r) {
+			T now = l->value;
 			_container *tmp = new _container;
 			tmp->value = now;
 			tmp->ch[1] = null;
 			tmp->ch[0] = null->ch[0];
 			null->ch[0]->ch[1] = tmp;
 			null->ch[0] = tmp;
-			_l++;
-			if (_l == l) head = tmp;
+			l = l->ch[1];
+			if (l == r) head = tmp;
 		}
+		Update(head);
 	}
 	
 	iterator begin() const {return head;}

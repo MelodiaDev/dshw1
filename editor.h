@@ -23,6 +23,7 @@ class editor_t {
 		void erase(int bias);
 		void insert(int dir = 0);
 		void insert_c(int);
+		int delete_c(int);
 };
 #endif
 
