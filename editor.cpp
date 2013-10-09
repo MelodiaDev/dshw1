@@ -173,3 +173,12 @@ int editor_t::delete_c(int dir) {
 	}
 }
 
+void editor_t::aim_to_end(void) {
+	Ypos = Xit->value.size();
+	Yit = Xit->value.end();
+}
+
+void editor_t::aim_to_begin(void) {
+	Ypos = 0; Yit = Xit->value.end();
+}
+
