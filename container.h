@@ -68,6 +68,8 @@ class editor_list {
 	
 	iterator begin() const {return head;}
 	iterator end() const {return null;}
+	iterator& begin() {return head;}
+	iterator& end() {return null;}
 
 	/*
 	 * Demo: get the index-th item from the begin of editor_list

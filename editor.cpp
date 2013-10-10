@@ -8,17 +8,18 @@ void editor_t::initialize(const char *file) {
 	FILE *fp = fopen(file, "r");
 	int c;
 	Xpos = Ypos = nRow = nCol = nChar = 0;
-	if (fp == NULL) return;
 	_char_t* tmp = new _char_t;
-	while ((c = fgetc(fp)) != EOF) {
-		if (c != '\n') {
-			tmp->insert(tmp->end(), c);
-		} else {
-			a.insert(a.end(), *tmp);
-			tmp = new _char_t;
-			nRow++;
+	if (fp != NULL) {
+		while ((c = fgetc(fp)) != EOF) {
+			if (c != '\n') {
+				tmp->insert(tmp->end(), c);
+			} else {
+				a.insert(a.end(), *tmp);
+				tmp = new _char_t;
+				nRow++;
+			}
+			nChar++;
 		}
-		nChar++;
 	}
 	a.insert(a.end(), *tmp);
 	nRow++;
@@ -120,14 +121,12 @@ void editor_t::erase(int bias) {
 }
 
 void editor_t::insert(int dir) {
-	_char_t *tmp = new _char_t();
 	if (dir == 0) {
-		a.insert(Xit, *tmp);
+		Xit = a.insert(Xit, *new _char_t);
 	} else {
-		a.insert(Xit->ch[1], *tmp);
+		Xit = a.insert(Xit->ch[1], *new _char_t());
 		Xpos++;
 	}
-	Xit = Xit->ch[dir];
 	Yit = Xit->value.begin();
 	Ypos = 0;
 	nRow++;
@@ -136,49 +135,64 @@ void editor_t::insert(int dir) {
 void editor_t::insert_c(int c) {
 	if (c != '\n') {
 		Yit = Xit->value.insert(Yit, c);
-	} else {
-		_line_t::iterator tmp = Xit;
-		Xit = a.insert(Xit->ch[1], editor_list<char>(Yit, Xit->value.end()));
-		tmp->value.erase(Yit, Xit->value.end());
+	} else if (Ypos == 0) {
+		Xit = a.insert(Xit, *new _char_t());
 		Yit = Xit->value.begin();
-		Ypos = 0;
+		nRow++;
+	} else {
+		_char_t::iterator tmp = Xit->value.Prev(Yit);
+		_line_t::iterator Next = Xit;
+		Xit = a.insert(Xit, *new _char_t());
+		Xit->value.begin() = Next->value.begin();
+		Xit->value.begin()->ch[0] = Xit->value.end();
+		Xit->value.end()->ch[1] = Xit->value.begin();
+		tmp->ch[1] = Xit->value.end();
+		Xit->value.end()->ch[0] = tmp;
+		Next->value.begin() = Yit;
+		Yit->ch[0] = Next->value.end();
+		Next->value.end()->ch[1] = Yit;
+		Next->value.Update(Yit);
+		Yit = Xit->value.end();
 		nRow++;
 	}
 }
 
-int editor_t::delete_c(int dir) {
-	if (dir == 0) {
-		if (Yit == Xit->value.begin()) return '\0';
-		int ret = Yit->ch[0]->value;
-		Xit->value.erase(Yit->ch[0]);
-		Ypos--;
-		return ret;
-	} else
+int editor_t::delete_c(void) {
 	if (Yit != Xit->value.end()) {
 		int ret = Yit->value;
 		Yit = Xit->value.erase(Yit);
 		return ret;
+	} else if (Xit->ch[1] == a.end()) {
+		return '\0';
+	} else if (Xit->value.begin() == Xit->value.end()) {
+		Xit = a.erase(Xit);
+		Yit = Xit->value.begin();
+		nRow--;
+		return '\n';
 	} else {
-		_char_t::iterator tmp = Xit->value.Prev(Xit->value.end());
+		_char_t::iterator tmp = Xit->value.Prev(Yit);
 		_line_t::iterator Next = Xit->ch[1];
-		Next->value.begin()->ch[0] = tmp;
-		tmp->ch[1] = Next->value.begin();
-		_char_t::iterator tt = Next->value.Prev(Next->value.end());
-		tt->ch[1] = Xit->value.end();
-		Xit->value.Update(tmp);
-		Xit->ch[1] = Next->ch[1];
-		Next->ch[1]->ch[0] = Xit->ch[0];
-		delete Next;
+		Yit = Next->value.begin();
+		Yit->ch[0] = tmp;
+		tmp->ch[1] = Yit;
+		Next->value.begin() = Xit->value.begin();
+		Next->value.begin()->ch[0] = Next->value.end();
+		Next->value.end()->ch[1] = Next->value.begin();
+		Next->value.Update(Yit);
+		a.erase(Xit);
+		Xit = Next;
+		nRow--;
 		return '\n';
 	}
 }
 
-void editor_t::aim_to_end(void) {
+int editor_t::aim_to_end(void) {
 	Ypos = Xit->value.size();
 	Yit = Xit->value.end();
+	return Yit->ch[0]->sum;
 }
 
 void editor_t::aim_to_begin(void) {
-	Ypos = 0; Yit = Xit->value.end();
+	Ypos = 0; Yit = Xit->value.begin();
 }
 

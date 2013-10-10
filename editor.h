@@ -23,8 +23,8 @@ class editor_t {
 		void erase(int bias);
 		void insert(int dir = 0);
 		void insert_c(int);
-		int delete_c(int);
-		void aim_to_end(void);
+		int delete_c(void);
+		int aim_to_end(void);
 		void aim_to_begin(void);
 };
 #endif
