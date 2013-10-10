@@ -6,11 +6,14 @@
 #include "ui.h"
 using std::vector;
 using std::string;
+
+/* predefined commands */
 const int comms = 4;
 const char *commnames[comms] = {"save", "find", "find'", "replace"};
 const int commargs[comms] = {1, 1, 1, 2};
 const char *commprefs[comms][10] = {{"Save: "}, {"Find: "}, {"Find backwards: "}, {"Find        : ", "Replace With: "}};
-int ui_t::window_adjust(void) {
+
+int ui_t::adjustscr(void) {
 	int flag = 0;
 	if (posx >= scrx + h) {
 		scrx = posx - (h-1);
@@ -31,20 +34,14 @@ int ui_t::window_adjust(void) {
 	if (scrx < 0) scrx = 0;
 	return flag;
 }
-void ui_t::initialize(const char *_file) {
-	posx = posy = realposy = scrx = scry = 0;
-	editor = new editor_t;
-	editor->initialize(_file);
-	int chars;
-	editor->info(rows, chars);
-	file = new char[strlen(_file)+1];
-	strcpy(file, _file);
-}
 void ui_t::refreshscr(int flag) {
+	/* draw text area */
+	/* calculate height of the text area */
 	int realh = h;
 	if (mode == MODE_COMM)
 		for (int i = 0; i < commarg; i++)
 			realh -= (strlen(commpref[i]) + strlen(commbuf[i])) / w + 1;
+	/* retrieve text from backend and refresh text area */
 	if (flag || realh > prerealh) {
 		vector<string> data;
 		editor->retrieve(scrx, scry, realh, w, data);
@@ -56,9 +53,12 @@ void ui_t::refreshscr(int flag) {
 				addch(data[i][j]);
 		}
 	}
+
+	/* draw status line */
 	prerealh = realh;
 	move(realh, 0);
 	clrtoeol();
+	/* file name */
 	if (w-25-10-2 >= 0) {
 		move(realh, 2);
 		char fmt[10];
@@ -66,10 +66,14 @@ void ui_t::refreshscr(int flag) {
 		printw(fmt, file[0] ? file : "[NEW]");
 		refresh();
 	}
+	/* mode */
 	move(realh, w-25);
 	printw(mode == MODE_INS ? "|INS|" : "|   |");
+	/* displayed position */
 	printw(" %d,%d", posx+1, posy);
 	refresh();
+
+	/* draw command area and move cursor */
 	if (mode == MODE_COMM) {
 		int nowh = realh+1, posh;
 		for (int i = 0; i < commarg; i++) {
@@ -87,26 +91,42 @@ void ui_t::refreshscr(int flag) {
 	}
 	refresh();
 }
-void ui_t::keyup(void) {
+
+void ui_t::initialize(const char *_file) {
+	posx = posy = realposy = scrx = scry = 0;
+	/* initialize backend */
+	editor = new editor_t;
+	editor->initialize(_file);
+	/* get number of rows from backend */
+	int chars;
+	editor->info(rows, chars);
+	file = new char[strlen(_file)+1];
+	strcpy(file, _file);
+}
+
+void ui_t::key_up(void) {
 	int newdx, newy;
+	/* get displayed position from desired position */
 	editor->go_x(-1, realposy, newdx, newy);
 	if (newdx == 0) return;
 	posx += newdx, posy = newy;
-	int refresh_flag = window_adjust();
+	int refresh_flag = adjustscr();
 	refreshscr(refresh_flag);
 }
-void ui_t::keydown(void) {
+void ui_t::key_down(void) {
 	int newdx, newy;
 	editor->go_x(1, realposy, newdx, newy);
 	if (newdx == 0) return;
 	posx += newdx, posy = newy;
-	int refresh_flag = window_adjust();
+	int refresh_flag = adjustscr();
 	refreshscr(refresh_flag);
 }
-void ui_t::keyleft(void) {
+void ui_t::key_left(void) {
 	int newdx, newdy;
 	editor->go_y(-1, newdy);
 	if (newdy == 0) {
+		/* if at the first character of current line, go up to the last
+		 * character of previous line */
 		if (posx == 0) return;
 		posx--;
 		editor->go_x(-1, 0, newdx, newdy);
@@ -115,13 +135,15 @@ void ui_t::keyleft(void) {
 		posy += newdy;
 		realposy = posy;
 	}
-	int refresh_flag = window_adjust();
+	int refresh_flag = adjustscr();
 	refreshscr(refresh_flag);
 }
-void ui_t::keyright(void) {
+void ui_t::key_right(void) {
 	int newdx, newdy;
 	editor->go_y(1, newdy);
 	if (newdy == 0) {
+		/* if at the last character of current line, go down to the first
+		 * character of next line */
 		if (posx == rows-1) return;
 		posx++;
 		editor->go_x(1, 0, newdx, newdy);
@@ -130,179 +152,177 @@ void ui_t::keyright(void) {
 		posy += newdy;
 		realposy = posy;
 	}
-	int refresh_flag = window_adjust();
+	int refresh_flag = adjustscr();
 	refreshscr(refresh_flag);
 }
-void ui_t::keypageup(void) {
+void ui_t::key_pageup(void) {
 	int newdx, newy;
 	scrx -= h/2;
 	editor->go_x(-h/2, realposy, newdx, newy);
 	posx += newdx, posy = newy;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keypagedown(void) {
+void ui_t::key_pagedown(void) {
 	int newdx, newy;
 	scrx += h/2;
 	editor->go_x(h/2, realposy, newdx, newy);
 	posx += newdx, posy = newy;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keypageleft(void) {
+void ui_t::key_pageleft(void) {
 	int newdy;
 	scry -= w/2;
 	if (scry < 0) scry = 0;
 	editor->go_y(-w/2, newdy);
 	posy += newdy;
 	realposy = posy;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keypageright(void) {
+void ui_t::key_pageright(void) {
 	int newdy;
 	scry += w/2;
 	editor->go_y(w/2, newdy);
 	posy += newdy;
 	realposy = posy;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keytop(void) {
+void ui_t::key_top(void) {
 	posx = editor->aim_to_line(0);
 	posy = 0;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keybottom(void) {
+void ui_t::key_bottom(void) {
 	posx = editor->aim_to_line(rows-1);
 	posy = 0;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keyhead(void) {
+void ui_t::key_head(void) {
 	posy = realposy = 0;
 	editor->aim_to_begin();
-	int refresh_flag = window_adjust();
+	int refresh_flag = adjustscr();
 	refreshscr(refresh_flag);
 }
-void ui_t::keytail(void) {
+void ui_t::key_tail(void) {
 	posy = realposy = editor->aim_to_end();
-	int refresh_flag = window_adjust();
+	int refresh_flag = adjustscr();
 	refreshscr(refresh_flag);
 }
-void ui_t::keydeletedown(void) {
+void ui_t::key_deletedown(void) {
 	if (posx == rows-1) return;
 	editor->erase(1);
 	posy = realposy = 0;
 	rows--;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keydeleteup(void) {
+void ui_t::key_deleteup(void) {
 	if (posx == 0) return;
 	editor->erase(-1);
 	posy = realposy = 0;
 	rows--; posx--, scrx--;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keydeleteleft(void) {
+void ui_t::key_deleteleft(void) {
 	if (posx == 0 && posy == 0) return;
-	keyleft();
-	keydeleteright();
-	int chars;
-	editor->info(rows, chars);
-	window_adjust();
-	refreshscr(1);
+	key_left();
+	key_deleteright();
 }
-void ui_t::keydeleteright(void) {
+void ui_t::key_deleteright(void) {
 	editor->delete_c();
 	int chars;
 	editor->info(rows, chars);
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keyinsertdown(void) {
+void ui_t::key_insertdown(void) {
 	editor->insert(1);
 	posy = realposy = 0;
 	rows++; posx++;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keyinsertup(void) {
+void ui_t::key_insertup(void) {
 	editor->insert(0);
 	posy = realposy = 0;
 	rows++; scrx++;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
-void ui_t::keyinsert(int c) {
+void ui_t::key_insert(int c) {
 	editor->insert_c(c);
 	int chars;
 	editor->info(rows, chars);
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
-	keyright();
+	key_right();
 }
-void ui_t::keycommup(void) {
+
+void ui_t::comm_key_up(void) {
 	if (commposx == 0) return;
 	commposx--;
 	commposy = strlen(commbuf[commposx]);
 	refreshscr(0);
 }
-void ui_t::keycommdown(void) {
+void ui_t::comm_key_down(void) {
 	if (commposx == commarg-1) return;
 	commposx++;
 	commposy = strlen(commbuf[commposx]);
 	refreshscr(0);
 }
-int ui_t::keycommnextarg(void) {
-	if (commposx == commarg-1) end_comm();
-	else keycommdown();
+int ui_t::comm_key_nextarg(void) {
+	if (commposx == commarg-1) comm_end();
+	else comm_key_down();
 	return mode;
 }
-void ui_t::keycommleft(void) {
+void ui_t::comm_key_left(void) {
 	if (commposy == 0) return;
 	commposy--;
 	refreshscr(0);
 }
-void ui_t::keycommright(void) {
+void ui_t::comm_key_right(void) {
 	if (commposy == strlen(commbuf[commposx])) return;
 	commposy++;
 	refreshscr(0);
 }
-void ui_t::keycommdeleteleft(void) {
+void ui_t::comm_key_deleteleft(void) {
 	if (commposy == 0) return;
 	for (int i = commposy, l = strlen(commbuf[commposx]); i <= l; i++)
 		commbuf[commposx][i-1] = commbuf[commposx][i];
 	commposy--;
 	refreshscr(0);
 }
-void ui_t::keycommdeleteright(void) {
+void ui_t::comm_key_deleteright(void) {
 	int l = strlen(commbuf[commposx]);
 	if (commposy == l) return;
 	for (int i = commposy; i < l; i++)
 		commbuf[commposx][i] = commbuf[commposx][i+1];
 	refreshscr(0);
 }
-void ui_t::keycomminsert(int c) {
+void ui_t::comm_key_insert(int c) {
 	for (int i = strlen(commbuf[commposx]); i >= commposy; i--)
 		commbuf[commposx][i+1] = commbuf[commposx][i];
 	commbuf[commposx][commposy] = c;
 	commposy++;
 	refreshscr(0);
 }
-void ui_t::resize(int _h, int _w) {
+
+void ui_t::resizescr(int _h, int _w) {
 	h = _h-1, w = _w;
-	window_adjust();
+	adjustscr();
 	refreshscr(1);
 }
 void ui_t::set_mode(int _mode) {
 	mode = _mode;
 	refreshscr(1);
 }
-void ui_t::start_comm(const char *name) {
+void ui_t::comm_start(const char *name) {
 	int i = 0;
 	for (; i < comms; i++)
 		if (strcmp(commnames[i], name) == 0) break;
@@ -318,6 +338,6 @@ void ui_t::start_comm(const char *name) {
 	prerealh = -1;
 	set_mode(MODE_COMM);
 }
-void ui_t::end_comm(void) {
+void ui_t::comm_end(void) {
 	set_mode(0);
 }
