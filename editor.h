@@ -14,7 +14,7 @@ class editor_t {
 		int Xpos, Ypos, nRow, nCol, nChar;
 	public:
 		editor_t() {Xit = a.end(); }
-		void initialize(const char *file);
+		void initialize(FILE *fp);
 		void info(int &num_row, int &num_char);
 		void retrieve(int x, int y, int h, int w, std::vector<std::string>&);
 		void go_y(int dy, int &resdy);
@@ -26,9 +26,10 @@ class editor_t {
 		int delete_c(void);
 		int aim_to_end(void);
 		void aim_to_begin(void);
-		void saveToFile(const char* name);
-		void Find(const char* str, int &resx, int &resy);
-		void Find_rev(const char* str, int &resx, int &resy);
+		void save_to_file(FILE *fp);
+		void find(const char* str, int &resx, int &resy);
+		void find_rev(const char* str, int &resx, int &resy);
+		void replace_all(const char *str, const char *dst);
 };
 #endif
 

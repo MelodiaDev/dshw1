@@ -1,11 +1,12 @@
 #include <cstdio>
+#include <cassert>
 #include <cstdlib>
+#include <cstring>
 
 #include "editor.h"
 #include "container.h"
 
-void editor_t::initialize(const char *file) {
-	FILE *fp = fopen(file, "r");
+void editor_t::initialize(FILE *fp) {
 	int c;
 	Xpos = Ypos = nRow = nCol = nChar = 0;
 	_char_t* tmp = new _char_t;
@@ -63,7 +64,6 @@ void editor_t::go_y(int dy, int &resdy) {
 	int dir = 1;
 	if (dy < 0) dy = -dy, dir = 0;
 	resdy = 0;
-	int back_y = Ypos;
 	_char_t::iterator it = Yit;
 	int tmp = 0;
 	if (dir == 1) {
@@ -196,8 +196,7 @@ void editor_t::aim_to_begin(void) {
 	Ypos = 0; Yit = Xit->value.begin();
 }
 
-void editor_t::saveToFile(const char* name) {
-	FILE* fp = fopen("w", name);
+void editor_t::save_to_file(FILE *fp) {
 	for (_line_t::iterator it = a.begin(); it != a.end(); it = it->ch[1]) {
 		for (_char_t::iterator ot = it->value.begin(); ot != it->value.end(); ot = ot->ch[1]) {
 			fputc(ot->value, fp);
@@ -207,7 +206,7 @@ void editor_t::saveToFile(const char* name) {
 	fclose(fp);
 }
 
-void editor_t::Find(const char* str, int &resx, int &resy) {
+void editor_t::find(const char* str, int &resx, int &resy) {
 	resx = Xpos; resy = Yit->ch[0]->sum;
 	std::string ss(str);
 	_line_t::iterator it = Xit; _char_t::iterator res;
@@ -233,7 +232,7 @@ void editor_t::Find(const char* str, int &resx, int &resy) {
 	}
 }
 
-void editor_t::Find_rev(const char *str, int &resx, int &resy) {
+void editor_t::find_rev(const char *str, int &resx, int &resy) {
 	resx = Xpos; resy = Yit->ch[0]->sum;
 	std::string ss(str);
 	_line_t::iterator it = Xit; _char_t::iterator res;
@@ -256,5 +255,26 @@ void editor_t::Find_rev(const char *str, int &resx, int &resy) {
 			return;
 		}
 	}
+}
+
+void editor_t::replace_all(const char *str, const char* dst) {
+	std::string ss(str); int Len = strlen(dst);
+	for (_line_t::iterator it = a.begin(); it != a.end(); it = it->ch[1]) {
+		_char_t::iterator ot = it->value.begin();
+		while (true) {
+			ot = it->value.match(ss, ot);
+			if (ot != it->value.end()) {
+				_char_t::iterator other = ot;
+				for (int i = 0; i < (int)ss.length(); i++) other = other->ch[1];
+				ot = it->value.erase(ot, other);
+				assert(other == ot);
+				for (int i = 0; i < Len; i++) {
+					other = it->value.insert(other, dst[i]);
+				}
+			} else break;
+		}
+	}
+	Xpos = Ypos = 0;
+	Xit = a.begin(); Yit = Xit->value.begin();
 }
 
