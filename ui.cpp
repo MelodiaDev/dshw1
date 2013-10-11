@@ -345,7 +345,7 @@ void ui_t::key_matchbackward(void) {
 	else {
 		/* get position of matched substring */
 		int resx, resy;
-		editor->Find_rev(findword, resx, resy);
+		editor->find_rev(findword, resx, resy);
 		if (resx == -1)
 			errtype = 2;
 		else {
@@ -362,7 +362,7 @@ void ui_t::key_matchforward(void) {
 		errtype = 3;
 	else {
 		int resx, resy; 
-		editor->Find(findword, resx, resy);
+		editor->find(findword, resx, resy);
 		if (resx == -1)
 			errtype = 2;
 		else {
@@ -405,7 +405,7 @@ void ui_t::comm_end(void) {
 		if (fp == NULL)
 			errtype = 1;
 		else
-			editor->saveToFile(fp);
+			editor->save_to_file(fp);
 		/* set current file name */
 		if (!errtype) {
 			delete [] file;
@@ -426,5 +426,9 @@ void ui_t::comm_end(void) {
 			strcpy(findword, commbuf[0]);
 			key_matchbackward();
 		}
+	} else if (strcmp(commname, "replace") == 0) {
+		editor->replace_all(commbuf[0], commbuf[1]);
+		posx = posy = scrx = scry = 0;
+		set_mode(0);
 	}
 }

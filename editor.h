@@ -8,10 +8,26 @@
 
 class editor_t {
 	protected:
+		/* the character container of a line */
 		typedef editor_list<char> _char_t;
+		
+		/* the line container of the whole file */
 		typedef editor_list<_char_t> _line_t;
-		_line_t a; _line_t::iterator Xit; _char_t::iterator Yit;
-		int Xpos, nRow;
+
+		/* the whole file */
+		_line_t a;
+		
+		/* the pointer of the current line */
+		_line_t::iterator Xit; 
+
+		/* the pointer of the current character */
+		_char_t::iterator Yit;
+
+		/* the current coodination */
+		int Xpos;
+		
+		/* the number of rows */
+		int nRow;
 	public:
 		editor_t() {Xit = a.end(); }
 		void initialize(FILE *fp);
@@ -26,9 +42,10 @@ class editor_t {
 		int delete_c(void);
 		int aim_to_end(void);
 		void aim_to_begin(void);
-		void saveToFile(FILE *fp);
-		void Find(const char* str, int &resx, int &resy);
-		void Find_rev(const char* str, int &resx, int &resy);
+		void save_to_file(FILE *fp);
+		void find(const char* str, int &resx, int &resy);
+		void find_rev(const char* str, int &resx, int &resy);
+		void replace_all(const char *str, const char *dst);
 };
 #endif
 
