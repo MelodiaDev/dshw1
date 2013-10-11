@@ -8,10 +8,26 @@
 
 class editor_t {
 	protected:
+		/* the character container of a line */
 		typedef editor_list<char> _char_t;
+		
+		/* the line container of the whole file */
 		typedef editor_list<_char_t> _line_t;
-		_line_t a; _line_t::iterator Xit; _char_t::iterator Yit;
-		int Xpos, Ypos, nRow, nCol, nChar;
+
+		/* the whole file */
+		_line_t a;
+		
+		/* the pointer of the current line */
+		_line_t::iterator Xit; 
+
+		/* the pointer of the current character */
+		_char_t::iterator Yit;
+
+		/* the current coodination */
+		int Xpos, Ypos; 
+		
+		/* the number of rows, columns and characters */
+		int nRow, nCol, nChar;
 	public:
 		editor_t() {Xit = a.end(); }
 		void initialize(FILE *fp);

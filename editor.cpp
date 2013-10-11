@@ -6,10 +6,15 @@
 #include "editor.h"
 #include "container.h"
 
+/*
+ * read the content from the file and initialize the editor.
+ */
+
 void editor_t::initialize(FILE *fp) {
 	int c;
 	Xpos = Ypos = nRow = nCol = nChar = 0;
 	_char_t* tmp = new _char_t;
+	/* read the content from a file */
 	if (fp != NULL) {
 		while ((c = fgetc(fp)) != EOF) {
 			if (c != '\n') {
@@ -23,14 +28,22 @@ void editor_t::initialize(FILE *fp) {
 		}
 	}
 	a.insert(a.end(), *tmp);
+	/* initialize the information of the editor */
 	nRow++;
 	Xit = a.begin();
 	Yit = Xit->value.begin();
 }
 
+/*
+ * get the infomation of current state
+ */
 void editor_t::info(int &num_row, int &num_char) {
 	num_row = nRow, num_char = nChar;
 }
+
+/*
+ * get the content in a rectangle, and print it on screen
+ */
 
 void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& ret) {
 	_line_t::iterator line_it = a.getPos(x);
@@ -40,6 +53,7 @@ void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& re
 		_char_t::iterator char_it = line_it->value.begin();
 		int nowy = 0, newy;
 		for (; char_it != line_it->value.end();) {
+			/* resolve the TAB issue */
 			if (char_it->value == '\t')
 				newy = (nowy + TAB_WIDTH) / TAB_WIDTH * TAB_WIDTH;
 			else
@@ -59,6 +73,10 @@ void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& re
 		ret.push_back(st);
 	}
 }
+
+/*
+ * move the current position horizontally
+ */
 
 void editor_t::go_y(int dy, int &resdy) {
 	int dir = 1;
@@ -84,6 +102,10 @@ void editor_t::go_y(int dy, int &resdy) {
 	Yit = it;
 }
 
+/*
+ * move the current position vertically
+ */
+
 void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
 	int tmp = Xpos; 
 	Xit = a.getPosAt(Xit, dx);
@@ -95,6 +117,10 @@ void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
 	go_y(y, resdy);
 }
 
+/*
+ * jump the a special line
+ */
+
 int editor_t::aim_to_line(int lineno) {
 	int ret;
 	if (lineno >= nRow) ret = nRow - 1;
@@ -105,6 +131,9 @@ int editor_t::aim_to_line(int lineno) {
 	return ret;
 }
 
+/*
+ * delete a interval of lines
+ */
 void editor_t::erase(int bias) {
 	int sig = 1; if (bias < 0) sig = -1, bias = -bias;
 	_line_t::iterator it = Xit;
@@ -120,6 +149,10 @@ void editor_t::erase(int bias) {
 	nRow -= bias;
 }
 
+/*
+ * insert a line, and the dir argument denote that the relative position of the current line.
+ */
+
 void editor_t::insert(int dir) {
 	if (dir == 0) {
 		Xit = a.insert(Xit, *new _char_t);
@@ -131,6 +164,10 @@ void editor_t::insert(int dir) {
 	Ypos = 0;
 	nRow++;
 }
+
+/*
+ * insert a single character
+ */
 
 void editor_t::insert_c(int c) {
 	if (c != '\n') {
@@ -156,6 +193,10 @@ void editor_t::insert_c(int c) {
 		nRow++;
 	}
 }
+
+/*
+ * delete a single character.
+ */
 
 int editor_t::delete_c(void) {
 	if (Yit != Xit->value.end()) {
@@ -186,16 +227,26 @@ int editor_t::delete_c(void) {
 	}
 }
 
+/*
+ * jump to the end of a line
+ */
 int editor_t::aim_to_end(void) {
 	Ypos = Xit->value.size();
 	Yit = Xit->value.end();
 	return Yit->ch[0]->sum;
 }
 
+/*
+ * jump to the begin of a line
+ */
+
 void editor_t::aim_to_begin(void) {
 	Ypos = 0; Yit = Xit->value.begin();
 }
 
+/*
+ * save current content into a special file
+ */
 void editor_t::save_to_file(FILE *fp) {
 	for (_line_t::iterator it = a.begin(); it != a.end(); it = it->ch[1]) {
 		for (_char_t::iterator ot = it->value.begin(); ot != it->value.end(); ot = ot->ch[1]) {
@@ -206,6 +257,9 @@ void editor_t::save_to_file(FILE *fp) {
 	fclose(fp);
 }
 
+/*
+ * find the position where the special string ocurred in the file
+ */
 void editor_t::find(const char* str, int &resx, int &resy) {
 	resx = Xpos; resy = Yit->ch[0]->sum;
 	std::string ss(str);
@@ -232,6 +286,9 @@ void editor_t::find(const char* str, int &resx, int &resy) {
 	}
 }
 
+/*
+ * find the position where the special string ocurred in the file in a reverse direction.
+ */
 void editor_t::find_rev(const char *str, int &resx, int &resy) {
 	resx = Xpos; resy = Yit->ch[0]->sum;
 	std::string ss(str);
@@ -256,6 +313,10 @@ void editor_t::find_rev(const char *str, int &resx, int &resy) {
 		}
 	}
 }
+
+/*
+ * replace a string to another one.
+ */
 
 void editor_t::replace_all(const char *str, const char* dst) {
 	std::string ss(str); int Len = strlen(dst);
