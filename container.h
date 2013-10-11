@@ -116,7 +116,7 @@ class editor_list {
 	 * Use "static" keywords instead, and clear the array before every time used.
 	 * Return the beginning of the first mathched. If there is no matched, just return null.
 	 */
-	iterator match(const std::string& pattern, iterator begin);
+	iterator match(const std::string& pattern, iterator begin, int dir = 1);
 
 	/*
 	 * clear the list
@@ -227,9 +227,9 @@ typename editor_list<T>::iterator editor_list<T>::erase(typename editor_list<T>:
 }
 
 template<class T>
-typename editor_list<T>::iterator editor_list<T>::match(const std::string& pattern, iterator begin) {
+typename editor_list<T>::iterator editor_list<T>::match(const std::string& pattern, iterator begin, int dir) {
 	int *next = new int[pattern.length()], j = -1; next[0] = -1;
-	for (int i = 1; i < pattern.length(); i++) {
+	for (int i = 1; i < (int)pattern.length(); i++) {
 		while (j != -1 && pattern[i] != pattern[j + 1]) j = next[j];
 		if (pattern[i] == pattern[j + 1]) j++;
 		next[i] = j;
@@ -238,11 +238,11 @@ typename editor_list<T>::iterator editor_list<T>::match(const std::string& patte
 	while (tmp != null) {
 		while (j != -1 && tmp->value != pattern[j + 1]) j = next[j];
 		if (tmp->value == pattern[j + 1]) j++;
-		if (j + 1 == pattern.length()) {
-			for (int i = 1; i < pattern.length(); i++) tmp = tmp->ch[0];
+		if (j + 1 == (int)pattern.length()) {
+			if (dir == 1) for (int i = 1; i < (int)pattern.length(); i++) tmp = tmp->ch[0];
 			return tmp;
 		}
-		tmp = tmp->ch[1];
+		tmp = tmp->ch[0];
 	}
 	return null;
 }

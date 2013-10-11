@@ -26,6 +26,9 @@ class editor_t {
 		int delete_c(void);
 		int aim_to_end(void);
 		void aim_to_begin(void);
+		void saveToFile(const char* name);
+		void Find(const char* str, int &resx, int &resy);
+		void Find_rev(const char* str, int &resx, int &resy);
 };
 #endif
 

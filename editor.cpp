@@ -196,3 +196,65 @@ void editor_t::aim_to_begin(void) {
 	Ypos = 0; Yit = Xit->value.begin();
 }
 
+void editor_t::saveToFile(const char* name) {
+	FILE* fp = fopen("w", name);
+	for (_line_t::iterator it = a.begin(); it != a.end(); it = it->ch[1]) {
+		for (_char_t::iterator ot = it->value.begin(); ot != it->value.end(); ot = ot->ch[1]) {
+			fputc(ot->value, fp);
+		}
+		fputc('\n', fp);
+	}
+	fclose(fp);
+}
+
+void editor_t::Find(const char* str, int &resx, int &resy) {
+	resx = Xpos; resy = Yit->ch[0]->sum;
+	std::string ss(str);
+	_line_t::iterator it = Xit; _char_t::iterator res;
+	res = it->value.match(ss, Yit);
+	if (res != it->value.end()) {
+		resx = Xpos;
+		resy = res->ch[0]->sum;
+		Ypos = it->value.getWhere(res);
+		Yit = res;
+		return;
+	}
+	int tmp = Xpos + 1;
+	it = it->ch[1];
+	for (;it != a.end(); it = it->ch[1], tmp++) {
+		res = it->value.match(ss, it->value.begin());
+		if (res != it->value.end()) {
+			resx = Xpos = tmp;
+			resy = res->ch[0]->sum;
+			Ypos = it->value.getWhere(res);
+			Yit = res;
+			return;
+		}
+	}
+}
+
+void editor_t::Find_rev(const char *str, int &resx, int &resy) {
+	resx = Xpos; resy = Yit->ch[0]->sum;
+	std::string ss(str);
+	_line_t::iterator it = Xit; _char_t::iterator res;
+	res = it->value.match(ss, Yit, 0);
+	if (res != it->value.end()) {
+		resx = Xpos;
+		resy = res->ch[0]->sum;
+		Ypos = it->value.getWhere(res);
+		Yit = res;
+		return;
+	}
+	int tmp = Xpos - 1; it = it->ch[0];
+	for (; it != a.end(); it = it->ch[0], tmp--) {
+		res = it->value.match(ss, it->value.end()->ch[0]);
+		if (res != it->value.end()) {
+			resx = Xpos = tmp;
+			resy = res->ch[0]->sum;
+			Ypos = it->value.getWhere(res);
+			Yit = res;
+			return;
+		}
+	}
+}
+
