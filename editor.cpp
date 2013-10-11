@@ -1,13 +1,13 @@
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include "editor.h"
 #include "container.h"
 
-void editor_t::initialize(const char *file) {
-	FILE *fp = fopen(file, "r");
+void editor_t::initialize(FILE *fp) {
 	int c;
-	Xpos = Ypos = nRow = nCol = nChar = 0;
+	Xpos = nRow = 0;
 	_char_t* tmp = new _char_t;
 	if (fp != NULL) {
 		while ((c = fgetc(fp)) != EOF) {
@@ -18,7 +18,6 @@ void editor_t::initialize(const char *file) {
 				tmp = new _char_t;
 				nRow++;
 			}
-			nChar++;
 		}
 	}
 	a.insert(a.end(), *tmp);
@@ -27,8 +26,8 @@ void editor_t::initialize(const char *file) {
 	Yit = Xit->value.begin();
 }
 
-void editor_t::info(int &num_row, int &num_char) {
-	num_row = nRow, num_char = nChar;
+void editor_t::info(int &num_row) {
+	num_row = nRow;
 }
 
 void editor_t::retrieve(int x, int y, int h, int w, std::vector<std::string>& ret) {
@@ -63,20 +62,17 @@ void editor_t::go_y(int dy, int &resdy) {
 	int dir = 1;
 	if (dy < 0) dy = -dy, dir = 0;
 	resdy = 0;
-	int back_y = Ypos;
 	_char_t::iterator it = Yit;
 	int tmp = 0;
 	if (dir == 1) {
 		while (tmp < dy && it != Xit->value.end()) {
 			tmp += it->sum - it->ch[0]->sum;
 			it = it->ch[1];
-			Ypos++;
 		}
 	} else {
 		while (tmp < dy && it->ch[0] != Xit->value.end()) {
 			tmp += it->ch[0]->sum - it->ch[0]->ch[0]->sum;
 			it = it->ch[0];
-			Ypos--;
 		}
 		tmp = -tmp;
 	}
@@ -91,7 +87,7 @@ void editor_t::go_x(int dx, int y, int &resdx, int &resdy) {
 	if (Xpos < 0) Xpos = 0;
 	if (Xpos >= nRow) Xpos = nRow - 1;
 	resdx = Xpos - tmp;
-	Ypos = 0; Yit = Xit->value.begin();
+	Yit = Xit->value.begin();
 	go_y(y, resdy);
 }
 
@@ -99,7 +95,7 @@ int editor_t::aim_to_line(int lineno) {
 	int ret;
 	if (lineno >= nRow) ret = nRow - 1;
 	else ret = lineno;
-	Xpos = ret; Ypos = 0;
+	Xpos = ret;
 	Xit = a.getPos(Xpos);
 	Yit = Xit->value.begin();
 	return ret;
@@ -116,7 +112,6 @@ void editor_t::erase(int bias) {
 	else {
 		Xit = a.erase(it, ot->ch[1]), Yit = Xit->value.begin();
 	}
-	Ypos = 0;
 	nRow -= bias;
 }
 
@@ -128,14 +123,13 @@ void editor_t::insert(int dir) {
 		Xpos++;
 	}
 	Yit = Xit->value.begin();
-	Ypos = 0;
 	nRow++;
 }
 
 void editor_t::insert_c(int c) {
 	if (c != '\n') {
 		Yit = Xit->value.insert(Yit, c);
-	} else if (Ypos == 0) {
+	} else if (Yit == Xit->value.begin()) {
 		Xit = a.insert(Xit, *new _char_t());
 		Yit = Xit->value.begin();
 		nRow++;
@@ -187,35 +181,37 @@ int editor_t::delete_c(void) {
 }
 
 int editor_t::aim_to_end(void) {
-	Ypos = Xit->value.size();
 	Yit = Xit->value.end();
 	return Yit->ch[0]->sum;
 }
 
 void editor_t::aim_to_begin(void) {
-	Ypos = 0; Yit = Xit->value.begin();
+	Yit = Xit->value.begin();
 }
 
-void editor_t::saveToFile(const char* name) {
-	FILE* fp = fopen("w", name);
-	for (_line_t::iterator it = a.begin(); it != a.end(); it = it->ch[1]) {
+void editor_t::saveToFile(FILE *fp) {
+	for (_line_t::iterator it = a.begin(); it != a.end();) {
 		for (_char_t::iterator ot = it->value.begin(); ot != it->value.end(); ot = ot->ch[1]) {
 			fputc(ot->value, fp);
 		}
-		fputc('\n', fp);
+		it = it->ch[1];
+		if (it != a.end()) fputc('\n', fp);
 	}
 	fclose(fp);
 }
 
 void editor_t::Find(const char* str, int &resx, int &resy) {
-	resx = Xpos; resy = Yit->ch[0]->sum;
+	resx = resy = -1;
 	std::string ss(str);
 	_line_t::iterator it = Xit; _char_t::iterator res;
 	res = it->value.match(ss, Yit);
+	if (res == Yit) {
+		res = it->value.getPosAt(res, strlen(str));
+		res = it->value.match(ss, res);
+	}
 	if (res != it->value.end()) {
 		resx = Xpos;
 		resy = res->ch[0]->sum;
-		Ypos = it->value.getWhere(res);
 		Yit = res;
 		return;
 	}
@@ -226,7 +222,7 @@ void editor_t::Find(const char* str, int &resx, int &resy) {
 		if (res != it->value.end()) {
 			resx = Xpos = tmp;
 			resy = res->ch[0]->sum;
-			Ypos = it->value.getWhere(res);
+			Xit = it;
 			Yit = res;
 			return;
 		}
@@ -234,24 +230,29 @@ void editor_t::Find(const char* str, int &resx, int &resy) {
 }
 
 void editor_t::Find_rev(const char *str, int &resx, int &resy) {
-	resx = Xpos; resy = Yit->ch[0]->sum;
+	resx = resy = -1;
 	std::string ss(str);
 	_line_t::iterator it = Xit; _char_t::iterator res;
-	res = it->value.match(ss, Yit, 0);
+	res = it->value.getPosAt(Yit, strlen(str)-1);
+	if (res == it->value.end()) res = res->ch[0];
+	res = it->value.match(ss, res, 0);
+	if (res == Yit) {
+		res = res->ch[0];
+		res = it->value.match(ss, res, 0);
+	}
 	if (res != it->value.end()) {
 		resx = Xpos;
 		resy = res->ch[0]->sum;
-		Ypos = it->value.getWhere(res);
 		Yit = res;
 		return;
 	}
 	int tmp = Xpos - 1; it = it->ch[0];
 	for (; it != a.end(); it = it->ch[0], tmp--) {
-		res = it->value.match(ss, it->value.end()->ch[0]);
+		res = it->value.match(ss, it->value.end()->ch[0], 0);
 		if (res != it->value.end()) {
 			resx = Xpos = tmp;
 			resy = res->ch[0]->sum;
-			Ypos = it->value.getWhere(res);
+			Xit = it;
 			Yit = res;
 			return;
 		}

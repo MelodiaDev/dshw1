@@ -1,4 +1,5 @@
 #include <string>
+#include <algorithm>
 
 #ifndef CIRCLE_H
 #define CIRCLE_H
@@ -228,21 +229,23 @@ typename editor_list<T>::iterator editor_list<T>::erase(typename editor_list<T>:
 
 template<class T>
 typename editor_list<T>::iterator editor_list<T>::match(const std::string& pattern, iterator begin, int dir) {
-	int *next = new int[pattern.length()], j = -1; next[0] = -1;
-	for (int i = 1; i < (int)pattern.length(); i++) {
-		while (j != -1 && pattern[i] != pattern[j + 1]) j = next[j];
-		if (pattern[i] == pattern[j + 1]) j++;
+	std::string tpattern(pattern);
+	if (dir == 0) std::reverse(tpattern.begin(), tpattern.end());
+	int *next = new int[tpattern.length()], j = -1; next[0] = -1;
+	for (int i = 1; i < (int)tpattern.length(); i++) {
+		while (j != -1 && tpattern[i] != tpattern[j + 1]) j = next[j];
+		if (tpattern[i] == tpattern[j + 1]) j++;
 		next[i] = j;
 	}
 	iterator tmp = begin; j = -1;
 	while (tmp != null) {
-		while (j != -1 && tmp->value != pattern[j + 1]) j = next[j];
-		if (tmp->value == pattern[j + 1]) j++;
-		if (j + 1 == (int)pattern.length()) {
-			if (dir == 1) for (int i = 1; i < (int)pattern.length(); i++) tmp = tmp->ch[0];
+		while (j != -1 && tmp->value != tpattern[j + 1]) j = next[j];
+		if (tmp->value == tpattern[j + 1]) j++;
+		if (j + 1 == (int)tpattern.length()) {
+			if (dir == 1) for (int i = 1; i < (int)tpattern.length(); i++) tmp = tmp->ch[0];
 			return tmp;
 		}
-		tmp = tmp->ch[0];
+		tmp = tmp->ch[dir];
 	}
 	return null;
 }

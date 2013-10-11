@@ -31,6 +31,12 @@ class ui_t {
 		const char** commpref;
 		/* user typed arguments */
 		char commbuf[10][COMM_BUFSIZE];
+		/* last searched word */
+		char findword[COMM_BUFSIZE];
+		/* property flags of opened file */
+		int file_new, file_error, file_edited;
+		/* error flag */
+		int errtype;
 		/* editor backend */
 		editor_t *editor;
 		/* adjust screen position by current position of cursor */
@@ -64,23 +70,24 @@ class ui_t {
 		void key_head(void);
 		void key_tail(void);
 		/* delete current line and move up/down */
-		void key_deletedown(void);
 		void key_deleteup(void);
+		void key_deletedown(void);
 		/* delete previous/next character */
 		void key_deleteleft(void);
 		void key_deleteright(void);
 		/* insert a blank line before/after the current line and move to it */
-		void key_insertdown(void);
 		void key_insertup(void);
+		void key_insertdown(void);
 		/* insert a character after the cursor and move right */
 		void key_insert(int c);
+		/* find previous/next match */
+		void key_matchbackward(void);
+		void key_matchforward(void);
 
 		/* key actions in command mode */
 		/* move to previous/next argument */
 		void comm_key_up(void);
 		void comm_key_down(void);
-		/* move to next argument, or execute if in the last argument */
-		int comm_key_nextarg(void);
 		/* move left/right a character */
 		void comm_key_left(void);
 		void comm_key_right(void);

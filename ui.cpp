@@ -2,6 +2,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include <errno.h>
 #include "editor.h"
 #include "ui.h"
 using std::vector;
@@ -12,6 +13,8 @@ const int comms = 4;
 const char *commnames[comms] = {"save", "find", "find'", "replace"};
 const int commargs[comms] = {1, 1, 1, 2};
 const char *commprefs[comms][10] = {{"Save: "}, {"Find: "}, {"Find backwards: "}, {"Find        : ", "Replace With: "}};
+const int errs = 4;
+const char *errmsgs[errs] = {"", "Unable to open file", "Search word not found", "No word to be searched"};
 
 int ui_t::adjustscr(void) {
 	int flag = 0;
@@ -58,20 +61,32 @@ void ui_t::refreshscr(int flag) {
 	prerealh = realh;
 	move(realh, 0);
 	clrtoeol();
-	/* file name */
-	if (w-25-10-2 >= 0) {
-		move(realh, 2);
-		char fmt[10];
-		sprintf(fmt, "%%.%ds", w-25-2-2);
-		printw(fmt, file[0] ? file : "[NEW]");
+	if (errtype) {
+		/* show error message */
+		attron(COLOR_PAIR(1) | A_BOLD);
+		mvprintw(realh, 0, "Error: %s\n", errmsgs[errtype]);
+		attroff(COLOR_PAIR(1) | A_BOLD);
+		errtype = 0;
+	} else {
+		/* file name */
+		if (w-25-10-2 >= 0) {
+			move(realh, 2);
+			char fmt[10];
+			sprintf(fmt, "%%.%ds", w-25-2-2);
+			string tmp = file;
+			if (file_new) tmp += "[NEW]";
+			else if (file_error) tmp += "[ERROR]";
+			if (file_edited) tmp += "*";
+			printw(fmt, tmp.c_str());
+			refresh();
+		}
+		/* mode */
+		move(realh, w-25);
+		printw(mode == MODE_INS ? "|INS|" : "|   |");
+		/* displayed position */
+		printw(" %d,%d", posx+1, posy);
 		refresh();
 	}
-	/* mode */
-	move(realh, w-25);
-	printw(mode == MODE_INS ? "|INS|" : "|   |");
-	/* displayed position */
-	printw(" %d,%d", posx+1, posy);
-	refresh();
 
 	/* draw command area and move cursor */
 	if (mode == MODE_COMM) {
@@ -94,14 +109,25 @@ void ui_t::refreshscr(int flag) {
 
 void ui_t::initialize(const char *_file) {
 	posx = posy = realposy = scrx = scry = 0;
-	/* initialize backend */
-	editor = new editor_t;
-	editor->initialize(_file);
-	/* get number of rows from backend */
-	int chars;
-	editor->info(rows, chars);
 	file = new char[strlen(_file)+1];
 	strcpy(file, _file);
+	/* open file and see if it exists */
+	file_new = file_error = file_edited = 0;
+	FILE *fp = NULL;
+	if (file[0]) {
+		fp = fopen(file, "r");
+		if (fp == NULL)
+			if (errno == ENOENT)
+				file_new = 1;
+			else
+				file_error = 1;
+	} else
+		file_new = 1;
+	/* initialize backend */
+	editor = new editor_t;
+	editor->initialize(fp);
+	/* get number of rows from backend */
+	editor->info(rows);
 }
 
 void ui_t::key_up(void) {
@@ -213,19 +239,21 @@ void ui_t::key_tail(void) {
 	int refresh_flag = adjustscr();
 	refreshscr(refresh_flag);
 }
-void ui_t::key_deletedown(void) {
-	if (posx == rows-1) return;
-	editor->erase(1);
-	posy = realposy = 0;
-	rows--;
-	adjustscr();
-	refreshscr(1);
-}
 void ui_t::key_deleteup(void) {
 	if (posx == 0) return;
 	editor->erase(-1);
 	posy = realposy = 0;
 	rows--; posx--, scrx--;
+	file_edited = 1;
+	adjustscr();
+	refreshscr(1);
+}
+void ui_t::key_deletedown(void) {
+	if (posx == rows-1) return;
+	editor->erase(1);
+	posy = realposy = 0;
+	rows--;
+	file_edited = 1;
 	adjustscr();
 	refreshscr(1);
 }
@@ -236,15 +264,8 @@ void ui_t::key_deleteleft(void) {
 }
 void ui_t::key_deleteright(void) {
 	editor->delete_c();
-	int chars;
-	editor->info(rows, chars);
-	adjustscr();
-	refreshscr(1);
-}
-void ui_t::key_insertdown(void) {
-	editor->insert(1);
-	posy = realposy = 0;
-	rows++; posx++;
+	editor->info(rows);
+	file_edited = 1;
 	adjustscr();
 	refreshscr(1);
 }
@@ -252,13 +273,22 @@ void ui_t::key_insertup(void) {
 	editor->insert(0);
 	posy = realposy = 0;
 	rows++; scrx++;
+	file_edited = 1;
+	adjustscr();
+	refreshscr(1);
+}
+void ui_t::key_insertdown(void) {
+	editor->insert(1);
+	posy = realposy = 0;
+	rows++; posx++;
+	file_edited = 1;
 	adjustscr();
 	refreshscr(1);
 }
 void ui_t::key_insert(int c) {
 	editor->insert_c(c);
-	int chars;
-	editor->info(rows, chars);
+	editor->info(rows);
+	file_edited = 1;
 	adjustscr();
 	refreshscr(1);
 	key_right();
@@ -275,11 +305,6 @@ void ui_t::comm_key_down(void) {
 	commposx++;
 	commposy = strlen(commbuf[commposx]);
 	refreshscr(0);
-}
-int ui_t::comm_key_nextarg(void) {
-	if (commposx == commarg-1) comm_end();
-	else comm_key_down();
-	return mode;
 }
 void ui_t::comm_key_left(void) {
 	if (commposy == 0) return;
@@ -312,6 +337,41 @@ void ui_t::comm_key_insert(int c) {
 	commposy++;
 	refreshscr(0);
 }
+void ui_t::key_matchbackward(void) {
+	int refresh_flag = 0;
+	if (!findword[0])
+		/* no word to be searched */
+		errtype = 3;
+	else {
+		/* get position of matched substring */
+		int resx, resy;
+		editor->Find_rev(findword, resx, resy);
+		if (resx == -1)
+			errtype = 2;
+		else {
+			/* locate to it */
+			posx = resx, posy = resy;
+			refresh_flag = adjustscr();
+		}
+	}
+	refreshscr(refresh_flag);
+}
+void ui_t::key_matchforward(void) {
+	int refresh_flag = 0;
+	if (!findword[0])
+		errtype = 3;
+	else {
+		int resx, resy; 
+		editor->Find(findword, resx, resy);
+		if (resx == -1)
+			errtype = 2;
+		else {
+			posx = resx, posy = resy;
+			refresh_flag = adjustscr();
+		}
+	}
+	refreshscr(refresh_flag);
+}
 
 void ui_t::resizescr(int _h, int _w) {
 	h = _h-1, w = _w;
@@ -339,5 +399,32 @@ void ui_t::comm_start(const char *name) {
 	set_mode(MODE_COMM);
 }
 void ui_t::comm_end(void) {
-	set_mode(0);
+	if (strcmp(commname, "save") == 0) {
+		/* try to open file and then save */
+		FILE *fp = fopen(commbuf[0], "w");
+		if (fp == NULL)
+			errtype = 1;
+		else
+			editor->saveToFile(fp);
+		/* set current file name */
+		if (!errtype) {
+			delete [] file;
+			file = new char[strlen(commbuf[0])+1];
+			strcpy(file, commbuf[0]);
+			file_new = file_error = file_edited = 0;
+		}
+		set_mode(0);
+	} else if (strcmp(commname, "find") == 0) {
+		set_mode(0);
+		if (commbuf[0]) {
+			strcpy(findword, commbuf[0]);
+			key_matchforward();
+		}
+	} else if (strcmp(commname, "find'") == 0) {
+		set_mode(0);
+		if (commbuf[0]) {
+			strcpy(findword, commbuf[0]);
+			key_matchbackward();
+		}
+	}
 }

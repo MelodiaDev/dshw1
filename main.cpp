@@ -37,6 +37,9 @@ int main(int argc, char **argv) {
 	nonl();
 	noecho();
 	keypad(stdscr, TRUE);
+	start_color();
+	use_default_colors();
+	init_pair(1, COLOR_WHITE, COLOR_RED);
 	/* if kbs=^H, then there is an issue */
 	const char *kbs_seq = tparm(tigetstr("kbs"));
 	if (kbs_seq[0] == 8 && kbs_seq[1] == 0) ctrlh2kbs = 1;
@@ -148,6 +151,13 @@ int main(int argc, char **argv) {
 					mode = MODE_COMM;
 					ui->comm_start("replace");
 					break;
+				/* N/Shift-N: find next/previous match */
+				case 'n':
+					ui->key_matchforward();
+					break;
+				case 'N':
+					ui->key_matchbackward();
+					break;
 			}
 			if (endflag) break;
 		/* key handling in command mode */
@@ -164,7 +174,8 @@ int main(int argc, char **argv) {
 						break;
 					/* Enter: go to next argument or execute */
 					case 13: case 10:
-						mode = ui->comm_key_nextarg();
+						ui->comm_end();
+						mode = 0;
 						break;
 					/* Delete/Backspace: delete next/previous character */
 					case KEY_DC:
@@ -173,11 +184,11 @@ int main(int argc, char **argv) {
 					case KEY_BACKSPACE:
 						ui->comm_key_deleteleft();
 						break;
-					/* Up/Down: go to previous/next argument */
-					case KEY_UP:
+					/* Tab/Shift-Tab: go to previous/next argument */
+					case KEY_BTAB:
 						ui->comm_key_up();
 						break;
-					case KEY_DOWN:
+					case 9:
 						ui->comm_key_down();
 						break;
 					/* Left/Right: move left/right a character */
