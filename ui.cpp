@@ -91,12 +91,14 @@ void ui_t::refreshscr(int flag) {
 	/* draw command area and move cursor */
 	if (mode == MODE_COMM) {
 		int nowh = realh+1, posh;
+		move(nowh, 0);
+		clrtobot();
 		for (int i = 0; i < commarg; i++) {
 			if (i == commposx) posh = nowh;
 			attron(A_BOLD);
 			mvprintw(nowh, 0, "%s", commpref[i]);
 			attroff(A_BOLD);
-			printw("%s\n", commbuf[i]);
+			printw("%s", commbuf[i]);
 			nowh += (strlen(commpref[i]) + strlen(commbuf[i])) / w + 1;
 		}
 		int pos = strlen(commpref[commposx]) + commposy;
