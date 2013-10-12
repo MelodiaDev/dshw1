@@ -16,6 +16,7 @@ AC_CHECK_LIB([ncurses], [initscr], , AC_MSG_ERROR([libncurses not found]))
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_HEADER_STDBOOL
 
 # Checks for library functions.
 

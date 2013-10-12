@@ -13,6 +13,7 @@ Installation
 ============
 
 * This package is distributed under UNIX/Linux environment.
+* Dependencies: ncurses
 * The easiest way is to type `./configure && make` to build, and `make install`
   to install.
 * You may also add configure options. A list of configure options is printed by

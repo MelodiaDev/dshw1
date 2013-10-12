@@ -13,8 +13,8 @@ const int comms = 4;
 const char *commnames[comms] = {"save", "find", "find'", "replace"};
 const int commargs[comms] = {1, 1, 1, 2};
 const char *commprefs[comms][10] = {{"Save: "}, {"Find: "}, {"Find backwards: "}, {"Find        : ", "Replace With: "}};
-const int errs = 4;
-const char *errmsgs[errs] = {"", "Unable to open file", "Search word not found", "No word to be searched"};
+const int errs = 5;
+const char *errmsgs[errs] = {"", "Unable to open file", "Search word not found", "No word to search", "Empty file name"};
 
 int ui_t::adjustscr(void) {
 	int flag = 0;
@@ -402,14 +402,16 @@ void ui_t::comm_start(const char *name) {
 }
 void ui_t::comm_end(void) {
 	if (strcmp(commname, "save") == 0) {
-		/* try to open file and then save */
-		FILE *fp = fopen(commbuf[0], "w");
-		if (fp == NULL)
-			errtype = 1;
-		else
-			editor->save_to_file(fp);
-		/* set current file name */
+		/* try to open file */
+		FILE *fp;
+		if (commbuf[0][0]) {
+			fp = fopen(commbuf[0], "w");
+			if (fp == NULL)
+				errtype = 1;
+		} else errtype = 4;
+		/* save file and set current file name */
 		if (!errtype) {
+			editor->save_to_file(fp);
 			delete [] file;
 			file = new char[strlen(commbuf[0])+1];
 			strcpy(file, commbuf[0]);
@@ -418,13 +420,13 @@ void ui_t::comm_end(void) {
 		set_mode(0);
 	} else if (strcmp(commname, "find") == 0) {
 		set_mode(0);
-		if (commbuf[0]) {
+		if (commbuf[0][0]) {
 			strcpy(findword, commbuf[0]);
 			key_matchforward();
 		}
 	} else if (strcmp(commname, "find'") == 0) {
 		set_mode(0);
-		if (commbuf[0]) {
+		if (commbuf[0][0]) {
 			strcpy(findword, commbuf[0]);
 			key_matchbackward();
 		}
