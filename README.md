@@ -21,6 +21,7 @@ Installation
 Usage
 =====
 
+* Run `dshw1 [file name]` to start the editor.
 * Use *H*/*J*/*K*/*L* or arrow keys to move, *Ctrl-H* or so to scroll half a
   screen.
 * Use *D*/*Shift-D* to delete the current line and move down/up.
