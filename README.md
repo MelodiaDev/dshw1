@@ -2,7 +2,8 @@ Introduction
 ============
 
 * Homework 1 (a text editor) of Data Structure Practice course.
-* Inspired by Vim and designed to be like Vim, but aimed to be a new editor.
+* The project is inspired by Vim and designed to be like Vim, but aimed to be a
+  new editor.
 
 Licensing
 =========
