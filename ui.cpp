@@ -333,6 +333,8 @@ void ui_t::comm_key_deleteright(void) {
 	refreshscr(0);
 }
 void ui_t::comm_key_insert(int c) {
+	/* prevent buffer overflow */
+	if (strlen(commbuf[commposx]) == COMM_BUFSIZE-1) return;
 	for (int i = strlen(commbuf[commposx]); i >= commposy; i--)
 		commbuf[commposx][i+1] = commbuf[commposx][i];
 	commbuf[commposx][commposy] = c;
